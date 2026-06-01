@@ -13,9 +13,7 @@ services:
     restart: unless-stopped
 
   gemini-web2api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/qssn70/gemini-web2api:latest
     container_name: gemini-web2api
     depends_on:
       - aistudio-to-api
