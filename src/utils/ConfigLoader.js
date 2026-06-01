@@ -23,6 +23,7 @@ const DEFAULTS = {
   browserHeadless: true,
   browserExecutablePath: "",
   maxContexts: 1,
+  tempConversationMode: true,
 
   maxRetries: 2,
   retryDelayMs: 1500,
@@ -54,6 +55,7 @@ function loadConfig() {
   config.browserHeadless = envBool("BROWSER_HEADLESS", DEFAULTS.browserHeadless);
   config.browserExecutablePath = envStr("BROWSER_EXECUTABLE_PATH", DEFAULTS.browserExecutablePath);
   config.maxContexts = envInt("MAX_CONTEXTS", DEFAULTS.maxContexts, 1);
+  config.tempConversationMode = envBool("TEMP_CONVERSATION_MODE", DEFAULTS.tempConversationMode);
 
   // Request
   config.maxRetries = envInt("MAX_RETRIES", DEFAULTS.maxRetries, 0);

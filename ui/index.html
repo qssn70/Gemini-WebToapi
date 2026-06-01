@@ -178,7 +178,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>#</th><th>账号名</th><th>状态</th><th>轮换</th><th>Canonical</th></tr>
+            <tr><th>#</th><th>账号名</th><th>状态</th><th>轮换</th><th>Canonical</th><th>操作</th></tr>
           </thead>
           <tbody id="accountTable"></tbody>
         </table>
@@ -325,12 +325,19 @@ function renderAccounts(d) {
     const isCurrent = d.browser.currentAuthIndex === a.index;
     const name = a.name || '<span style="color:var(--text2)">-</span>';
 
+    const actionCell = isCurrent
+      ? '<span class="tag green">当前</span>'
+      : a.isRotation
+        ? `<button class="primary" style="padding:3px 10px;font-size:12px" onclick="switchAccount(${a.index})">切换</button>`
+        : '';
+
     return `<tr${isCurrent ? ' style="background:var(--bg3)"' : ''}>
       <td>${isCurrent ? '<strong>#' + a.index + ' *</strong>' : a.index}</td>
       <td>${name}</td>
       <td>${statusTag}</td>
       <td>${rotationTag}</td>
       <td>${a.canonicalIndex !== null ? a.canonicalIndex : '-'}</td>
+      <td>${actionCell}</td>
     </tr>`;
   }).join('');
 }
@@ -346,7 +353,28 @@ function renderConfig(d) {
     <tr><td>重试间隔</td><td>${cfg.retryDelayMs} ms</td></tr>
     <tr><td>请求超时</td><td>${cfg.requestTimeoutMs} ms</td></tr>
     <tr><td>Auth 写回</td><td>${cfg.enableAuthUpdate ? '启用' : '禁用'}</td></tr>
+    <tr><td>临时对话模式</td><td>${cfg.tempConversationMode ? '启用（每次请求新建对话）' : '禁用（复用对话）'}</td></tr>
   `;
+}
+
+// --- Account switch ---
+async function switchAccount(authIndex) {
+  if (!confirm('确认切换到账号 #' + authIndex + '？')) return;
+  try {
+    const r = await fetch(API_BASE + '/api/account/switch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ authIndex }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      await refreshStatus();
+    } else {
+      alert('切换失败: ' + (d.error?.message || '未知错误'));
+    }
+  } catch (e) {
+    alert('切换失败: ' + e.message);
+  }
 }
 
 // --- Auth reload ---

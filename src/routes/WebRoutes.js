@@ -60,9 +60,40 @@ function createWebRoutes({ authSource, browserPool, requestHandler, config, logg
         maxContexts: config.maxContexts,
         enableAuthUpdate: config.enableAuthUpdate,
         geminiWebUrl: config.geminiWebUrl,
+        tempConversationMode: config.tempConversationMode,
       },
       logs: logger.getRecentLogs(200),
     });
+  });
+
+  // Switch to a specific account
+  router.post("/api/account/switch", async (req, res) => {
+    const authIndex = req.body.authIndex;
+    if (authIndex === undefined || authIndex === null || typeof authIndex !== "number") {
+      return res.status(400).json({
+        error: {
+          message: "Missing or invalid 'authIndex' (must be a number).",
+          type: "invalid_request",
+        },
+      });
+    }
+
+    try {
+      const session = await browserPool.switchToAccount(authIndex);
+      logger.info(`[WebUI] Switched to account ${authIndex} via Web UI.`);
+      res.json({
+        ok: true,
+        currentAuthIndex: session.authIndex,
+      });
+    } catch (err) {
+      logger.warn(`[WebUI] Failed to switch to account ${authIndex}: ${err.message}`);
+      res.status(400).json({
+        error: {
+          message: err.message,
+          type: err.name || "Error",
+        },
+      });
+    }
   });
 
   // Reload auth files

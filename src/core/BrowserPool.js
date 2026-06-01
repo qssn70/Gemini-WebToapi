@@ -102,6 +102,32 @@ class BrowserPool {
   }
 
   /**
+   * Switch to a specific account by auth index.
+   * The index must be in the current rotation list.
+   *
+   * @param {number} authIndex - The auth index to switch to.
+   * @returns {Promise<{authIndex: number, context: import('playwright').BrowserContext, page: import('playwright').Page}>}
+   */
+  async switchToAccount(authIndex) {
+    const indices = this.authSource.getRotationIndices();
+    const pos = indices.indexOf(authIndex);
+    if (pos === -1) {
+      throw new NoAuthAvailableError(
+        `Auth index ${authIndex} is not in the rotation list (may be expired, duplicate, or missing).`
+      );
+    }
+
+    // Close current session
+    await this._closeCurrentSession();
+
+    // Set rotation position to the target account
+    this.rotationPosition = pos;
+    this.logger.info(`[BrowserPool] Switching to account ${authIndex} (position ${pos})`);
+
+    return await this._createSession();
+  }
+
+  /**
    * Mark the current account as failed and rotate.
    * @param {string} [reason]
    */

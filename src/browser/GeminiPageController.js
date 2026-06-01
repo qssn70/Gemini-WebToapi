@@ -20,15 +20,21 @@ class GeminiPageController {
 
   /**
    * Ensure the page is ready for interaction.
-   * Navigates to Gemini Web if not already there.
+   * In temp conversation mode, always navigates to a fresh URL to avoid history carry-over.
+   * Otherwise navigates only if not already on Gemini.
    * Checks for login/quotas state.
    *
    * @param {import('playwright').Page} page
    */
   async ensureReady(page) {
     const currentUrl = page.url();
-    if (!currentUrl.includes("gemini.google.com")) {
-      this.logger.debug("[PageController] Navigating to Gemini Web...");
+    const needsNavigation =
+      this.config.tempConversationMode || !currentUrl.includes("gemini.google.com");
+
+    if (needsNavigation) {
+      this.logger.debug(
+        `[PageController] Navigating to Gemini Web (tempMode=${this.config.tempConversationMode})...`
+      );
       await page.goto(this.config.geminiWebUrl, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
