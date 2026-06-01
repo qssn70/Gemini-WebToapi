@@ -104,6 +104,18 @@ See `.env.example` for all available environment variables.
 | `MAX_RETRIES` | 2 | Maximum retry attempts |
 | `REQUEST_TIMEOUT_MS` | 120000 | Request timeout in ms |
 
+## Web Management Panel
+
+Access `http://localhost:7870/ui` to open the management panel (no API key required).
+
+Features:
+
+- **Dashboard** — system uptime, browser status, account statistics
+- **Account Management** — view all auth file states (active/expired/duplicate/rotation)
+- **Online Testing** — test generateContent directly from the browser
+- **Real-time Logs** — view server logs with auto-refresh
+- **Configuration** — display current runtime settings
+
 ## Architecture
 
 ```

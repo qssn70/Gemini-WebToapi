@@ -15,6 +15,7 @@ const { createApiKeyAuthMiddleware } = require("../middleware/ApiKeyAuth");
 const { createHealthRoutes } = require("../routes/HealthRoutes");
 const { createGeminiRoutes } = require("../routes/GeminiRoutes");
 const { createOpenAIRoutes } = require("../routes/OpenAIRoutes");
+const { createWebRoutes } = require("../routes/WebRoutes");
 
 class GeminiWeb2ApiSystem {
   constructor() {
@@ -126,13 +127,23 @@ class GeminiWeb2ApiSystem {
     // Parse JSON bodies
     app.use(express.json({ limit: "20mb" }));
 
-    // Health route (no auth)
+    // Public routes (no auth)
     const healthRoutes = createHealthRoutes({
       authSource: this.authSource,
       browserPool: this.browserPool,
       logger: this.logger,
     });
     app.use("/", healthRoutes);
+
+    // Web UI and management API (no auth, must be before API key middleware)
+    const webRoutes = createWebRoutes({
+      authSource: this.authSource,
+      browserPool: this.browserPool,
+      requestHandler: this.requestHandler,
+      config: this.config,
+      logger: this.logger,
+    });
+    app.use("/", webRoutes);
 
     // API key middleware for protected routes
     const apiKeyAuth = createApiKeyAuthMiddleware(this.config.apiKeys);
