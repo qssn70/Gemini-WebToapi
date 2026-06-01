@@ -29,7 +29,7 @@ npm install
 cp .env.example .env
 
 # 确保 auth 文件存在
-mkdir -p configs/auth
+mkdir -p auth
 # 将 AIStudioToAPI 的 auth-0.json 放在此目录
 
 # 启动服务

@@ -29,7 +29,7 @@ npm install
 cp .env.example .env
 
 # Ensure auth files exist
-mkdir -p configs/auth
+mkdir -p auth
 # Place your auth-0.json from AIStudioToAPI here
 
 # Start the server
