@@ -1,6 +1,6 @@
 /**
  * ModelFetcher - dynamically fetch available models from Gemini API
- * using the browser's Google auth cookies.
+ * using the browser context's Google auth cookies.
  */
 
 const fs = require("fs");
@@ -21,10 +21,10 @@ class ModelFetcher {
 
   /**
    * Get models list. Returns cached data if fresh, otherwise fetches.
-   * @param {import('playwright').Page} [page] - browser page for auth cookies
+   * @param {import('playwright').BrowserContext} [context] - browser context for auth cookies
    * @returns {Promise<Array>} models array in Gemini API format
    */
-  async getModels(page) {
+  async getModels(context) {
     const now = Date.now();
     if (this._cache && now - this._cacheTime < this._ttl) {
       return this._cache;
@@ -33,7 +33,7 @@ class ModelFetcher {
     // Dedup concurrent fetches
     if (this._fetching) return this._fetching;
 
-    this._fetching = this._fetch(page).finally(() => {
+    this._fetching = this._fetch(context).finally(() => {
       this._fetching = null;
     });
 
@@ -50,22 +50,23 @@ class ModelFetcher {
 
   /**
    * Fetch models from Gemini API via browser context.
+   * Uses context.request which carries the context's cookies
+   * and is not subject to page CORS restrictions.
    */
-  async _fetch(page) {
-    // Try to fetch via browser if page is available
-    if (page && !page.isClosed()) {
+  async _fetch(context) {
+    if (context) {
       try {
-        const result = await page.evaluate(async (url) => {
-          const resp = await fetch(url, { credentials: "include" });
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          return resp.json();
-        }, MODELS_API_URL);
-
-        if (result.models && Array.isArray(result.models) && result.models.length > 0) {
-          this._cache = result.models;
-          this._cacheTime = Date.now();
-          this.logger.info(`[ModelFetcher] Fetched ${result.models.length} models from Gemini API.`);
-          return this._cache;
+        const resp = await context.request.get(MODELS_API_URL);
+        if (resp.ok()) {
+          const result = await resp.json();
+          if (result.models && Array.isArray(result.models) && result.models.length > 0) {
+            this._cache = result.models;
+            this._cacheTime = Date.now();
+            this.logger.info(`[ModelFetcher] Fetched ${result.models.length} models from Gemini API.`);
+            return this._cache;
+          }
+        } else {
+          this.logger.warn(`[ModelFetcher] Gemini API returned ${resp.status()}`);
         }
       } catch (err) {
         this.logger.warn(`[ModelFetcher] Failed to fetch models from API: ${err.message}`);

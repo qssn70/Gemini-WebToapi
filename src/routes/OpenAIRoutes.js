@@ -10,13 +10,13 @@ function createOpenAIRoutes({ requestHandler, modelFetcher, browserPool }) {
   // List models (OpenAI format)
   router.get("/v1/models", async (req, res) => {
     try {
-      let page = null;
+      let context = null;
       try {
         const session = await browserPool.getCurrentSession();
-        page = session.page;
+        context = session.context;
       } catch {}
 
-      const models = await modelFetcher.getModels(page);
+      const models = await modelFetcher.getModels(context);
 
       res.json({
         object: "list",

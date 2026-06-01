@@ -11,14 +11,14 @@ function createGeminiRoutes({ requestHandler, modelFetcher, browserPool }) {
   // List models
   router.get("/models", async (req, res) => {
     try {
-      // Try to get browser page for dynamic fetch
-      let page = null;
+      // Try to get browser context for dynamic fetch
+      let context = null;
       try {
         const session = await browserPool.getCurrentSession();
-        page = session.page;
+        context = session.context;
       } catch {}
 
-      const models = await modelFetcher.getModels(page);
+      const models = await modelFetcher.getModels(context);
       res.json({ models });
     } catch (err) {
       res.json({ models: [] });
