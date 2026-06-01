@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: gemini-web-to-api
+  IMAGE_NAME: qssn70/gemini-web-to-api
 
 jobs:
   build-and-push:
