@@ -1,0 +1,50 @@
+services:
+  aistudio-to-api:
+    image: ghcr.io/idetool/ai-studio-to-api:latest
+    container_name: aistudio-to-api
+    ports:
+      - "7860:7860"
+    environment:
+      - PORT=7860
+      - HOST=0.0.0.0
+      - API_KEYS=${AISTUDIO_API_KEYS:-123456}
+      - WEB_CONSOLE_USERNAME=${AISTUDIO_WEB_CONSOLE_USERNAME:-admin}
+      - WEB_CONSOLE_PASSWORD=${AISTUDIO_WEB_CONSOLE_PASSWORD:-changeme}
+      - ENABLE_AUTH_UPDATE=true
+      - MAX_CONTEXTS=${AISTUDIO_MAX_CONTEXTS:-1}
+      - LOG_LEVEL=${AISTUDIO_LOG_LEVEL:-INFO}
+    volumes:
+      - ./auth:/app/configs/auth
+      - ./aistudio-data:/app/data
+    shm_size: "2gb"
+    restart: unless-stopped
+
+  gemini-web2api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gemini-web2api
+    depends_on:
+      - aistudio-to-api
+    ports:
+      - "7870:7870"
+    environment:
+      - PORT=7870
+      - HOST=0.0.0.0
+      - API_KEYS=${GEMINI_WEB2API_KEYS:-123456}
+      - AUTH_MODE=file
+      - AUTH_DIR=/app/configs/auth
+      - ENABLE_AUTH_UPDATE=false
+      - AISTUDIO_BASE_URL=http://aistudio-to-api:7860
+      - GEMINI_WEB_URL=https://gemini.google.com/app
+      - BROWSER_HEADLESS=true
+      - MAX_CONTEXTS=1
+      - MAX_RETRIES=2
+      - RETRY_DELAY_MS=1500
+      - REQUEST_TIMEOUT_MS=120000
+      - LOG_LEVEL=info
+    volumes:
+      - ./auth:/app/configs/auth:ro
+      - ./gemini-web2api-data:/app/data
+    shm_size: "2gb"
+    restart: unless-stopped
