@@ -13,8 +13,8 @@ services:
     restart: unless-stopped
 
   gemini-web2api:
-    image: ghcr.io/qssn70/gemini-web2api:latest
-    container_name: gemini-web2api
+    image: ghcr.io/qssn70/gemini-web-to-api:latest
+    container_name: gemini-web-to-api
     depends_on:
       - aistudio-to-api
     ports:
