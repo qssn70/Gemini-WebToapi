@@ -4,31 +4,13 @@
  */
 
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
 
-function createGeminiRoutes({ requestHandler }) {
+function createGeminiRoutes({ requestHandler, modelRegistry }) {
   const router = express.Router();
 
   // List models
   router.get("/models", (req, res) => {
-    const modelsPath = path.join(__dirname, "../../configs/models.json");
-    try {
-      const data = JSON.parse(fs.readFileSync(modelsPath, "utf-8"));
-      res.json(data);
-    } catch (err) {
-      res.json({
-        models: [
-          {
-            name: "models/gemini-web",
-            version: "web",
-            displayName: "Gemini Web",
-            description: "Gemini Web through browser automation",
-            supportedGenerationMethods: ["generateContent"],
-          },
-        ],
-      });
-    }
+    res.json(modelRegistry.listGeminiModels());
   });
 
   // generateContent with slash-style: /models/:model/generateContent
@@ -36,8 +18,8 @@ function createGeminiRoutes({ requestHandler }) {
     return requestHandler.handleGeminiGenerate(req, res);
   });
 
-  // generateContent with colon-style: /models/gemini-web:generateContent
-  // The :modelAction param captures "gemini-web:generateContent"
+  // generateContent with colon-style: /models/gemini-3.1-flash-lite:generateContent
+  // The :modelAction param captures "gemini-3.1-flash-lite:generateContent"
   router.post("/models/:modelAction", (req, res) => {
     const modelAction = req.params.modelAction;
     if (modelAction && modelAction.endsWith(":generateContent")) {

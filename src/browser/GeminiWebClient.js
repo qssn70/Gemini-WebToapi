@@ -19,7 +19,7 @@ class GeminiWebClient {
    * @returns {Promise<object>} { text, finishReason, model, authIndex, raw }
    */
   async generate(request) {
-    const { requestId, model, prompt, systemInstruction, generationConfig } = request;
+    const { requestId, model, webModelLabel, prompt, systemInstruction, generationConfig } = request;
 
     let session;
     try {
@@ -36,6 +36,7 @@ class GeminiWebClient {
         prompt,
         systemInstruction,
         model,
+        webModelLabel,
         generationConfig,
         requestId,
       });

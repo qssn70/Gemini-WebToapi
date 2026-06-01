@@ -20,12 +20,13 @@ const {
 const sleep = require("../utils/sleep");
 
 class RequestHandler {
-  constructor({ config, logger, authSource, browserPool, geminiWebClient }) {
+  constructor({ config, logger, authSource, browserPool, geminiWebClient, modelRegistry }) {
     this.config = config;
     this.logger = logger;
     this.authSource = authSource;
     this.browserPool = browserPool;
     this.geminiWebClient = geminiWebClient;
+    this.modelRegistry = modelRegistry;
   }
 
   /**
@@ -33,12 +34,14 @@ class RequestHandler {
    */
   async handleGeminiGenerate(req, res) {
     const requestId = crypto.randomUUID();
-    const model = this._extractModel(req.params.model);
-
-    this.logger.info(`[RequestHandler] Gemini generateContent, model=${model}, requestId=${requestId}`);
+    let model;
 
     try {
-      const internalRequest = adaptGeminiRequest(req.body, requestId, model);
+      model = this._resolveModel(req.params.model);
+      this.logger.info(`[RequestHandler] Gemini generateContent, model=${model.id}, requestId=${requestId}`);
+
+      const internalRequest = adaptGeminiRequest(req.body, requestId, model.id);
+      internalRequest.webModelLabel = model.webModelLabel;
       this.logger.debug(`[RequestHandler] Internal request: prompt=${internalRequest.prompt.length} chars, systemInstruction=${internalRequest.systemInstruction.length} chars`);
 
       const result = await this._executeWithRetry(internalRequest, requestId);
@@ -73,7 +76,11 @@ class RequestHandler {
 
     try {
       const internalRequest = adaptOpenAIRequest(req.body, requestId);
-      this.logger.debug(`[RequestHandler] Internal request: prompt=${internalRequest.prompt.length} chars`);
+      const model = this._resolveModel(internalRequest.model);
+      internalRequest.model = model.id;
+      internalRequest.webModelLabel = model.webModelLabel;
+      internalRequest.metadata.resolvedModel = model.id;
+      this.logger.debug(`[RequestHandler] Internal request: model=${model.id}, prompt=${internalRequest.prompt.length} chars`);
 
       const result = await this._executeWithRetry(internalRequest, requestId);
       const response = adaptOpenAIResponse({ ...result, requestId });
@@ -234,11 +241,26 @@ class RequestHandler {
   }
 
   /**
+   * Resolve the requested model through the registry.
+   */
+  _resolveModel(modelParam) {
+    if (!this.modelRegistry) {
+      return { id: this._extractModel(modelParam), webModelLabel: "" };
+    }
+
+    const model = this.modelRegistry.resolve(modelParam);
+    if (!model) {
+      throw new ValidationError(`Unknown model: ${modelParam}`);
+    }
+    return model;
+  }
+
+  /**
    * Extract the model name from the route param.
-   * e.g. "gemini-web" or "models/gemini-web"
+   * e.g. "gemini-3.1-flash-lite" or "models/gemini-3.1-flash-lite"
    */
   _extractModel(modelParam) {
-    if (!modelParam) return "gemini-web";
+    if (!modelParam) return "gemini-3.1-flash-lite";
     // Strip "models/" prefix if present
     return modelParam.replace(/^models\//, "");
   }

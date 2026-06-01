@@ -5,13 +5,13 @@ describe("OpenAIResponseAdapter", () => {
     const result = adaptOpenAIResponse({
       text: "Hello!",
       finishReason: "STOP",
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       requestId: "req-abc",
     });
 
     expect(result.id).toBe("chatcmpl-req-abc");
     expect(result.object).toBe("chat.completion");
-    expect(result.model).toBe("gemini-web");
+    expect(result.model).toBe("gemini-3.1-flash-lite");
     expect(result.choices).toHaveLength(1);
     expect(result.choices[0].message.role).toBe("assistant");
     expect(result.choices[0].message.content).toBe("Hello!");
@@ -22,7 +22,7 @@ describe("OpenAIResponseAdapter", () => {
     const result = adaptOpenAIResponse({
       text: "Test",
       finishReason: "STOP",
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       requestId: "req-1",
     });
 
@@ -35,7 +35,7 @@ describe("OpenAIResponseAdapter", () => {
     const result = adaptOpenAIResponse({
       text: "Test",
       finishReason: "UNKNOWN_REASON",
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       requestId: "req-2",
     });
 
@@ -46,7 +46,7 @@ describe("OpenAIResponseAdapter", () => {
     const result = adaptOpenAIResponse({
       text: "Test",
       finishReason: "STOP",
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
     });
 
     expect(result.id).toBe("chatcmpl-unknown");

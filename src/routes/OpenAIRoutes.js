@@ -4,8 +4,13 @@
 
 const express = require("express");
 
-function createOpenAIRoutes({ requestHandler }) {
+function createOpenAIRoutes({ requestHandler, modelRegistry }) {
   const router = express.Router();
+
+  // List models
+  router.get("/v1/models", (req, res) => {
+    res.json(modelRegistry.listOpenAIModels());
+  });
 
   // Chat completions
   router.post("/v1/chat/completions", (req, res) => {

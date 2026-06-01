@@ -90,7 +90,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 curl -X POST \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  http://localhost:7870/v1beta/models/gemini-web:generateContent \
+  http://localhost:7870/v1beta/models/gemini-3.1-flash-lite:generateContent \
   -d '{
     "contents": [
       {
@@ -120,7 +120,7 @@ curl -X POST \
   -H "Content-Type: application/json" \
   http://localhost:7870/v1/chat/completions \
   -d '{
-    "model": "gemini-web",
+    "model": "gemini-3.1-flash-lite",
     "messages": [
       { "role": "system", "content": "你是一个简洁的助手。" },
       { "role": "user", "content": "你好，介绍一下自己。" }
@@ -150,7 +150,26 @@ curl -X POST \
 | `MAX_RETRIES` | 2 | 最大重试次数 |
 | `RETRY_DELAY_MS` | 1500 | 重试间隔（毫秒） |
 | `REQUEST_TIMEOUT_MS` | 120000 | 请求超时（毫秒） |
+| `DEFAULT_MODEL` | gemini-3.1-flash-lite | 未传模型时使用的默认模型 |
+| `MODELS` | 内置模型列表 | 可用模型列表，格式：`id:web页面模型标签:显示名`，多个用逗号分隔 |
 | `LOG_LEVEL` | info | 日志级别（error/warn/info/debug） |
+
+### 模型切换
+
+默认暴露以下模型：
+
+- `gemini-3.1-flash-lite`
+- `gemini-3.5-flash`
+- `gemini-3.1-pro-preview`
+
+Gemini/OpenAI 请求中的模型名会被解析为内部模型 ID，并在 Gemini Web 页面尝试切换到对应模型。当前支持的思考等级为 `standard`（标准）和 `extended`（扩展），可通过 Gemini `generationConfig.thinkingLevel` / `thinking_level` 或 OpenAI `thinking_level` / `reasoning_effort` 传入。由于 Gemini Web DOM 可能变化，如果页面模型菜单或思考等级菜单无法识别，服务会记录 warn 日志并继续使用页面当前设置。
+
+可用 `MODELS` 自定义列表，例如：
+
+```bash
+MODELS="gemini-3.1-flash-lite:3.1 Flash-Lite:Gemini 3.1 Flash-Lite,gemini-3.5-flash:3.5 Flash:Gemini 3.5 Flash,gemini-3.1-pro-preview:3.1 Pro:Gemini 3.1 Pro Preview"
+DEFAULT_MODEL=gemini-3.1-flash-lite
+```
 
 ## Web 管理面板
 

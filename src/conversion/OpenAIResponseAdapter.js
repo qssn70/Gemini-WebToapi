@@ -21,7 +21,7 @@ function adaptOpenAIResponse(result) {
     id: `chatcmpl-${result.requestId || "unknown"}`,
     object: "chat.completion",
     created: 0,
-    model: result.model || "gemini-web",
+    model: result.model || "gemini-3.1-flash-lite",
     choices: [
       {
         index: 0,

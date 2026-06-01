@@ -4,7 +4,7 @@
  * Avoids scattered process.env reads across business modules.
  */
 
-const path = require("path");
+const { DEFAULT_MODELS, parseModelsEnv } = require("../core/ModelRegistry");
 
 const DEFAULTS = {
   host: "0.0.0.0",
@@ -30,6 +30,10 @@ const DEFAULTS = {
   requestTimeoutMs: 120000,
 
   logLevel: "info",
+  enablePageDebug: false,
+
+  defaultModel: "gemini-3.1-flash-lite",
+  models: DEFAULT_MODELS,
 };
 
 function loadConfig() {
@@ -64,6 +68,11 @@ function loadConfig() {
 
   // Logging
   config.logLevel = envStr("LOG_LEVEL", DEFAULTS.logLevel);
+  config.enablePageDebug = envBool("ENABLE_PAGE_DEBUG", DEFAULTS.enablePageDebug);
+
+  // Models
+  config.models = parseModelsEnv(envStr("MODELS", ""));
+  config.defaultModel = envStr("DEFAULT_MODEL", DEFAULTS.defaultModel);
 
   // Validate auth mode
   if (config.authMode !== "file") {

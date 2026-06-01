@@ -3,7 +3,7 @@ const { adaptOpenAIRequest } = require("../../src/conversion/OpenAIRequestAdapte
 describe("OpenAIRequestAdapter", () => {
   test("single user message", () => {
     const body = {
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       messages: [{ role: "user", content: "Hello" }],
     };
     const result = adaptOpenAIRequest(body, "req-1");
@@ -14,7 +14,7 @@ describe("OpenAIRequestAdapter", () => {
 
   test("system + user messages", () => {
     const body = {
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       messages: [
         { role: "system", content: "Be concise." },
         { role: "user", content: "Hello" },
@@ -28,7 +28,7 @@ describe("OpenAIRequestAdapter", () => {
 
   test("assistant message included in prompt", () => {
     const body = {
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       messages: [
         { role: "user", content: "Hi" },
         { role: "assistant", content: "Hello!" },
@@ -43,7 +43,7 @@ describe("OpenAIRequestAdapter", () => {
 
   test("array content extracts text parts", () => {
     const body = {
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       messages: [
         {
           role: "user",
@@ -62,7 +62,7 @@ describe("OpenAIRequestAdapter", () => {
 
   test("no text content: throws ValidationError", () => {
     const body = {
-      model: "gemini-web",
+      model: "gemini-3.1-flash-lite",
       messages: [
         { role: "user", content: [{ type: "image_url", image_url: { url: "x" } }] },
       ],
@@ -70,15 +70,13 @@ describe("OpenAIRequestAdapter", () => {
     expect(() => adaptOpenAIRequest(body, "req-5")).toThrow("No text content");
   });
 
-  test("temperature and max_tokens forwarded", () => {
+  test("thinking_level forwarded", () => {
     const body = {
-      model: "gemini-web",
+      model: "gemini-3.1-pro-preview",
       messages: [{ role: "user", content: "Test" }],
-      temperature: 0.8,
-      max_tokens: 512,
+      thinking_level: "standard",
     };
-    const result = adaptOpenAIRequest(body, "req-6");
-    expect(result.generationConfig.temperature).toBe(0.8);
-    expect(result.generationConfig.maxOutputTokens).toBe(512);
+    const result = adaptOpenAIRequest(body, "req-7");
+    expect(result.generationConfig.thinkingLevel).toBe("standard");
   });
 });

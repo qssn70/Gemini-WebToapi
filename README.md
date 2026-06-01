@@ -77,7 +77,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 curl -X POST \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  http://localhost:7870/v1beta/models/gemini-web:generateContent \
+  http://localhost:7870/v1beta/models/gemini-3.1-flash-lite:generateContent \
   -d '{"contents":[{"role":"user","parts":[{"text":"Say hello in one sentence."}]}]}'
 ```
 
@@ -88,7 +88,7 @@ curl -X POST \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   http://localhost:7870/v1/chat/completions \
-  -d '{"model":"gemini-web","messages":[{"role":"user","content":"Say hello."}],"stream":false}'
+  -d '{"model":"gemini-3.1-flash-lite","messages":[{"role":"user","content":"Say hello."}],"stream":false}'
 ```
 
 ## Configuration
@@ -103,6 +103,25 @@ See `.env.example` for all available environment variables.
 | `BROWSER_HEADLESS` | true | Run browser in headless mode |
 | `MAX_RETRIES` | 2 | Maximum retry attempts |
 | `REQUEST_TIMEOUT_MS` | 120000 | Request timeout in ms |
+| `DEFAULT_MODEL` | gemini-3.1-flash-lite | Default model when a request does not specify one |
+| `MODELS` | Built-in model list | Available models, format: `id:web UI label:display name`, comma-separated |
+
+## Model Switching
+
+The built-in model names are aligned with AIStudio model IDs:
+
+- `gemini-3.1-flash-lite`
+- `gemini-3.5-flash`
+- `gemini-3.1-pro-preview`
+
+Gemini/OpenAI requests are resolved by model ID and the browser automation attempts to select the matching Gemini Web model. Thinking level can be set to `standard` or `extended` via Gemini `generationConfig.thinkingLevel` / `thinking_level`, or OpenAI `thinking_level` / `reasoning_effort`.
+
+Example:
+
+```bash
+MODELS="gemini-3.1-flash-lite:3.1 Flash-Lite:Gemini 3.1 Flash-Lite,gemini-3.5-flash:3.5 Flash:Gemini 3.5 Flash,gemini-3.1-pro-preview:3.1 Pro:Gemini 3.1 Pro Preview"
+DEFAULT_MODEL=gemini-3.1-flash-lite
+```
 
 ## Web Management Panel
 

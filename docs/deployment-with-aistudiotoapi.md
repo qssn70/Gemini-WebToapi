@@ -87,7 +87,7 @@ curl http://localhost:7870/health
 curl -X POST \
   -H "Authorization: Bearer your-key" \
   -H "Content-Type: application/json" \
-  http://localhost:7870/v1beta/models/gemini-web:generateContent \
+  http://localhost:7870/v1beta/models/gemini-3.1-flash-lite:generateContent \
   -d '{"contents":[{"role":"user","parts":[{"text":"Hello!"}]}]}'
 ```
 

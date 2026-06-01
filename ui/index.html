@@ -194,6 +194,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     <div class="card">
       <h3>测试 generateContent</h3>
       <div class="form-group">
+        <label>模型</label>
+        <select id="testModel"></select>
+      </div>
+      <div class="form-group">
         <label>Prompt</label>
         <textarea id="testPrompt" placeholder="输入测试 prompt...">用一句话介绍一下自己。</textarea>
       </div>
@@ -202,6 +206,13 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         <input id="testSystem" placeholder="系统指令..." />
       </div>
       <div style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1">
+          <label>思考等级</label>
+          <select id="testThinkingLevel">
+            <option value="standard">标准</option>
+            <option value="extended">扩展</option>
+          </select>
+        </div>
         <div class="form-group" style="flex:1">
           <label>Temperature</label>
           <input id="testTemp" type="number" step="0.1" min="0" max="2" value="0.7" />
@@ -281,6 +292,7 @@ async function refreshStatus() {
     renderDashboard(statusData);
     renderAccounts(statusData);
     renderConfig(statusData);
+    renderModelSelect(statusData);
     document.getElementById('statusBadge').textContent = 'ONLINE';
     document.getElementById('statusBadge').className = 'badge';
   } catch (e) {
@@ -347,6 +359,8 @@ function renderConfig(d) {
   const cfg = d.config;
   table.innerHTML = `
     <tr><td>Gemini Web URL</td><td>${escapeHtml(cfg.geminiWebUrl)}</td></tr>
+    <tr><td>默认模型</td><td>${escapeHtml(cfg.defaultModel)}</td></tr>
+    <tr><td>可用模型</td><td>${escapeHtml(cfg.models.map(m => m.id + (m.webModelLabel ? ' → ' + m.webModelLabel : '')).join(', '))}</td></tr>
     <tr><td>浏览器模式</td><td>${cfg.browserHeadless ? '无头 (headless)' : '有头 (headed)'}</td></tr>
     <tr><td>最大上下文数</td><td>${cfg.maxContexts}</td></tr>
     <tr><td>最大重试次数</td><td>${cfg.maxRetries}</td></tr>
@@ -355,6 +369,17 @@ function renderConfig(d) {
     <tr><td>Auth 写回</td><td>${cfg.enableAuthUpdate ? '启用' : '禁用'}</td></tr>
     <tr><td>临时对话模式</td><td>${cfg.tempConversationMode ? '启用（每次请求新建对话）' : '禁用（复用对话）'}</td></tr>
   `;
+}
+
+function renderModelSelect(d) {
+  const select = document.getElementById('testModel');
+  if (!select || !d.config.models) return;
+
+  const current = select.value || d.config.defaultModel;
+  select.innerHTML = d.config.models.map(m =>
+    `<option value="${escapeHtml(m.id)}">${escapeHtml(m.displayName || m.id)}</option>`
+  ).join('');
+  select.value = d.config.models.some(m => m.id === current) ? current : d.config.defaultModel;
 }
 
 // --- Account switch ---
@@ -402,10 +427,12 @@ async function runTest() {
   box.textContent = '等待响应...';
 
   const body = {
+    model: document.getElementById('testModel').value || (statusData?.config?.defaultModel || 'gemini-3.1-flash-lite'),
     prompt: document.getElementById('testPrompt').value,
     generationConfig: {
       temperature: parseFloat(document.getElementById('testTemp').value) || 0.7,
       maxOutputTokens: parseInt(document.getElementById('testMaxTokens').value) || 2048,
+      thinkingLevel: document.getElementById('testThinkingLevel').value || 'standard',
     },
   };
   const sys = document.getElementById('testSystem').value.trim();

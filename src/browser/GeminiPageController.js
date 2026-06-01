@@ -54,12 +54,15 @@ class GeminiPageController {
    * @param {string} params.prompt
    * @param {string} [params.systemInstruction]
    * @param {string} [params.model]
+   * @param {string} [params.webModelLabel]
    * @param {object} [params.generationConfig]
    * @param {string} [params.requestId]
    * @returns {Promise<{text: string, finishReason: string, raw: object}>}
    */
-  async generate(page, { prompt, systemInstruction, model, generationConfig, requestId }) {
+  async generate(page, { prompt, systemInstruction, model, webModelLabel, generationConfig, requestId }) {
     await this.ensureReady(page);
+    await this._selectModel(page, webModelLabel, requestId);
+    await this._selectThinkingLevel(page, generationConfig && generationConfig.thinkingLevel, requestId);
 
     // Build final prompt with system instruction
     let finalPrompt = prompt;
@@ -109,6 +112,64 @@ class GeminiPageController {
       finishReason: "STOP",
       raw: {},
     };
+  }
+
+  /**
+   * Select a Gemini Web model when a web model label is configured.
+   */
+  async _selectModel(page, webModelLabel, requestId) {
+    if (!webModelLabel) return;
+
+    const label = String(webModelLabel).trim();
+    if (!label) return;
+
+    try {
+      const menuButton = await this._findElement(page, selectors.modelMenuButton, 3000);
+      if (!menuButton) {
+        this.logger.warn(`[PageController] Model menu not found; continuing with current Gemini Web model, requested=${label}, requestId=${requestId}`);
+        return;
+      }
+
+      await menuButton.click();
+      await sleep(300);
+
+      const option = page.getByText(label, { exact: false }).first();
+      await option.click({ timeout: 5000 });
+      await sleep(500);
+
+      this.logger.debug(`[PageController] Selected Gemini Web model ${label}, requestId=${requestId}`);
+    } catch (err) {
+      this.logger.warn(`[PageController] Failed to select Gemini Web model ${label}: ${err.message}, requestId=${requestId}`);
+    }
+  }
+
+  /**
+   * Select a Gemini Web thinking level when requested.
+   */
+  async _selectThinkingLevel(page, thinkingLevel, requestId) {
+    if (!thinkingLevel) return;
+
+    const label = thinkingLevel === "extended" ? "扩展" : "标准";
+    const fallbackLabel = thinkingLevel === "extended" ? "Extended" : "Standard";
+
+    try {
+      const menuButton = await this._findElement(page, selectors.thinkingMenuButton, 3000);
+      if (!menuButton) {
+        this.logger.warn(`[PageController] Thinking menu not found; continuing with current thinking level, requested=${thinkingLevel}, requestId=${requestId}`);
+        return;
+      }
+
+      await menuButton.click();
+      await sleep(300);
+
+      const option = page.getByText(label, { exact: false }).or(page.getByText(fallbackLabel, { exact: false })).first();
+      await option.click({ timeout: 5000 });
+      await sleep(500);
+
+      this.logger.debug(`[PageController] Selected thinking level ${thinkingLevel}, requestId=${requestId}`);
+    } catch (err) {
+      this.logger.warn(`[PageController] Failed to select thinking level ${thinkingLevel}: ${err.message}, requestId=${requestId}`);
+    }
   }
 
   /**

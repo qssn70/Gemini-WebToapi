@@ -6,7 +6,9 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 
-function createWebRoutes({ authSource, browserPool, requestHandler, config, logger }) {
+const DEBUG_DIR = path.join(process.cwd(), "debug");
+
+function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistry, config, logger }) {
   const router = express.Router();
 
   // Serve the Web UI
@@ -61,6 +63,13 @@ function createWebRoutes({ authSource, browserPool, requestHandler, config, logg
         enableAuthUpdate: config.enableAuthUpdate,
         geminiWebUrl: config.geminiWebUrl,
         tempConversationMode: config.tempConversationMode,
+        enablePageDebug: config.enablePageDebug,
+        defaultModel: modelRegistry.defaultModel,
+        models: modelRegistry.models.map((model) => ({
+          id: model.id,
+          displayName: model.displayName,
+          webModelLabel: model.webModelLabel,
+        })),
       },
       logs: logger.getRecentLogs(200),
     });
@@ -107,12 +116,53 @@ function createWebRoutes({ authSource, browserPool, requestHandler, config, logg
     });
   });
 
+  // Capture current Gemini Web page debug artifacts for selector updates
+  router.post("/api/debug/page", async (req, res) => {
+    if (!config.enablePageDebug) {
+      return res.status(404).json({
+        error: {
+          message: "Page debug capture is disabled. Set ENABLE_PAGE_DEBUG=true to enable it.",
+          type: "not_enabled",
+        },
+      });
+    }
+
+    try {
+      const session = await browserPool.getCurrentSession();
+      await fs.promises.mkdir(DEBUG_DIR, { recursive: true });
+
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      const htmlPath = path.join(DEBUG_DIR, `gemini-page-${ts}.html`);
+      const screenshotPath = path.join(DEBUG_DIR, `gemini-page-${ts}.png`);
+
+      const html = await session.page.content();
+      await fs.promises.writeFile(htmlPath, html, "utf-8");
+      await session.page.screenshot({ path: screenshotPath, fullPage: true });
+
+      logger.info(`[WebUI] Captured Gemini page debug artifacts: ${htmlPath}, ${screenshotPath}`);
+      res.json({
+        ok: true,
+        htmlPath,
+        screenshotPath,
+        url: session.page.url(),
+      });
+    } catch (err) {
+      logger.warn(`[WebUI] Failed to capture Gemini page debug artifacts: ${err.message}`);
+      res.status(500).json({
+        error: {
+          message: err.message,
+          type: err.name || "Error",
+        },
+      });
+    }
+  });
+
   // Test generateContent (proxies through requestHandler)
   router.post("/api/test/generate", async (req, res) => {
     try {
       // Build a fake Express-like req/res for the request handler
       const fakeReq = {
-        params: { model: req.body.model || "gemini-web" },
+        params: { model: req.body.model || config.defaultModel },
         body: {
           contents: req.body.contents || [
             { role: "user", parts: [{ text: req.body.prompt || "Hello" }] },

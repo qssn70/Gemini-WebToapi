@@ -11,6 +11,7 @@ const BrowserPool = require("./BrowserPool");
 const GeminiPageController = require("../browser/GeminiPageController");
 const GeminiWebClient = require("../browser/GeminiWebClient");
 const RequestHandler = require("./RequestHandler");
+const { createModelRegistry } = require("./ModelRegistry");
 const { createApiKeyAuthMiddleware } = require("../middleware/ApiKeyAuth");
 const { createHealthRoutes } = require("../routes/HealthRoutes");
 const { createGeminiRoutes } = require("../routes/GeminiRoutes");
@@ -25,6 +26,7 @@ class GeminiWeb2ApiSystem {
     this.browserPool = null;
     this.pageController = null;
     this.geminiWebClient = null;
+    this.modelRegistry = null;
     this.requestHandler = null;
     this.app = null;
     this.server = null;
@@ -68,6 +70,12 @@ class GeminiWeb2ApiSystem {
       logger: this.logger,
     });
 
+    // Create model registry
+    this.modelRegistry = createModelRegistry({
+      models: this.config.models,
+      defaultModel: this.config.defaultModel,
+    });
+
     // Create request handler
     this.requestHandler = new RequestHandler({
       config: this.config,
@@ -75,6 +83,7 @@ class GeminiWeb2ApiSystem {
       authSource: this.authSource,
       browserPool: this.browserPool,
       geminiWebClient: this.geminiWebClient,
+      modelRegistry: this.modelRegistry,
     });
 
     // Create Express app
@@ -140,6 +149,7 @@ class GeminiWeb2ApiSystem {
       authSource: this.authSource,
       browserPool: this.browserPool,
       requestHandler: this.requestHandler,
+      modelRegistry: this.modelRegistry,
       config: this.config,
       logger: this.logger,
     });
@@ -151,12 +161,14 @@ class GeminiWeb2ApiSystem {
     // Gemini API routes
     const geminiRoutes = createGeminiRoutes({
       requestHandler: this.requestHandler,
+      modelRegistry: this.modelRegistry,
     });
     app.use("/v1beta", apiKeyAuth, geminiRoutes);
 
     // OpenAI-compatible routes
     const openaiRoutes = createOpenAIRoutes({
       requestHandler: this.requestHandler,
+      modelRegistry: this.modelRegistry,
     });
     app.use("/", apiKeyAuth, openaiRoutes);
 

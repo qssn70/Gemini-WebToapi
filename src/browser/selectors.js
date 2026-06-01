@@ -35,4 +35,15 @@ module.exports = {
     "button[aria-label*='Stop']",
     "button[aria-label*='停止']",
   ],
+  modelMenuButton: [
+    "button[aria-label*='model']",
+    "button[aria-label*='Model']",
+    "button[aria-label*='模型']",
+    "button:has-text('Gemini')",
+  ],
+  thinkingMenuButton: [
+    "button[aria-label*='thinking']",
+    "button[aria-label*='Thinking']",
+    "button[aria-label*='思考']",
+  ],
 };

@@ -14,7 +14,7 @@ const { ValidationError } = require("../utils/Errors");
  */
 function adaptOpenAIRequest(body, requestId) {
   const messages = body.messages || [];
-  const model = body.model || "gemini-web";
+  const model = body.model || null;
 
   const systemParts = [];
   const promptParts = [];
@@ -50,9 +50,10 @@ function adaptOpenAIRequest(body, requestId) {
     generationConfig: {
       temperature: body.temperature ?? null,
       maxOutputTokens: body.max_tokens ?? null,
+      thinkingLevel: normalizeThinkingLevel(body.thinking_level ?? body.thinkingLevel ?? body.reasoning_effort),
     },
     metadata: {
-      originalModel: body.model || "gemini-web",
+      originalModel: body.model || null,
     },
   };
 }
@@ -76,6 +77,17 @@ function extractContentText(content) {
     return texts.join("\n");
   }
   return "";
+}
+
+/**
+ * Normalize Gemini Web thinking level names.
+ */
+function normalizeThinkingLevel(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const normalized = String(value).trim().toLowerCase();
+  if (["standard", "标准", "normal", "medium"].includes(normalized)) return "standard";
+  if (["extended", "扩展", "advanced", "deep", "high"].includes(normalized)) return "extended";
+  return null;
 }
 
 module.exports = { adaptOpenAIRequest };

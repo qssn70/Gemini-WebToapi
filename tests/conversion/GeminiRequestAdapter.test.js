@@ -5,7 +5,7 @@ describe("GeminiRequestAdapter", () => {
     const body = {
       contents: [{ role: "user", parts: [{ text: "Hello" }] }],
     };
-    const result = adaptGeminiRequest(body, "req-1", "gemini-web");
+    const result = adaptGeminiRequest(body, "req-1", "gemini-3.1-flash-lite");
     expect(result.prompt).toContain("[User]");
     expect(result.prompt).toContain("Hello");
     expect(result.sourceApi).toBe("gemini");
@@ -20,7 +20,7 @@ describe("GeminiRequestAdapter", () => {
         { role: "user", parts: [{ text: "Continue" }] },
       ],
     };
-    const result = adaptGeminiRequest(body, "req-2", "gemini-web");
+    const result = adaptGeminiRequest(body, "req-2", "gemini-3.1-flash-lite");
     expect(result.prompt).toContain("[User]");
     expect(result.prompt).toContain("[Assistant]");
     expect(result.prompt).toContain("Hi");
@@ -33,7 +33,7 @@ describe("GeminiRequestAdapter", () => {
       contents: [{ role: "user", parts: [{ text: "Test" }] }],
       systemInstruction: { parts: [{ text: "Be concise." }] },
     };
-    const result = adaptGeminiRequest(body, "req-3", "gemini-web");
+    const result = adaptGeminiRequest(body, "req-3", "gemini-3.1-flash-lite");
     expect(result.systemInstruction).toBe("Be concise.");
   });
 
@@ -41,12 +41,12 @@ describe("GeminiRequestAdapter", () => {
     const body = {
       contents: [{ role: "user", parts: [{ inlineData: { mimeType: "image/png" } }] }],
     };
-    expect(() => adaptGeminiRequest(body, "req-4", "gemini-web")).toThrow("No text content");
+    expect(() => adaptGeminiRequest(body, "req-4", "gemini-3.1-flash-lite")).toThrow("No text content");
   });
 
   test("empty contents: throws ValidationError", () => {
     const body = { contents: [] };
-    expect(() => adaptGeminiRequest(body, "req-5", "gemini-web")).toThrow("No text content");
+    expect(() => adaptGeminiRequest(body, "req-5", "gemini-3.1-flash-lite")).toThrow("No text content");
   });
 
   test("generationConfig forwarded", () => {
@@ -54,8 +54,17 @@ describe("GeminiRequestAdapter", () => {
       contents: [{ role: "user", parts: [{ text: "Test" }] }],
       generationConfig: { temperature: 0.5, maxOutputTokens: 1024 },
     };
-    const result = adaptGeminiRequest(body, "req-6", "gemini-web");
+    const result = adaptGeminiRequest(body, "req-6", "gemini-3.1-flash-lite");
     expect(result.generationConfig.temperature).toBe(0.5);
     expect(result.generationConfig.maxOutputTokens).toBe(1024);
+  });
+
+  test("thinkingLevel forwarded", () => {
+    const body = {
+      contents: [{ role: "user", parts: [{ text: "Test" }] }],
+      generationConfig: { thinkingLevel: "extended" },
+    };
+    const result = adaptGeminiRequest(body, "req-7", "gemini-3.1-pro-preview");
+    expect(result.generationConfig.thinkingLevel).toBe("extended");
   });
 });

@@ -26,7 +26,7 @@ function adaptGeminiResponse(result) {
       candidatesTokenCount: 0,
       totalTokenCount: 0,
     },
-    modelVersion: result.model || "gemini-web",
+    modelVersion: result.model || "gemini-3.1-flash-lite",
   };
 }
 
