@@ -8,6 +8,7 @@ RUN npm install --omit=dev --no-audit --no-fund
 COPY main.js ./
 COPY src ./src
 COPY configs ./configs
+COPY ui ./ui
 
 EXPOSE 7870
 ENV NODE_ENV=production
