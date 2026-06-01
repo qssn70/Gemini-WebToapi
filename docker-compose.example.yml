@@ -5,18 +5,11 @@ services:
     ports:
       - "7860:7860"
     environment:
-      - PORT=7860
-      - HOST=0.0.0.0
       - API_KEYS=${AISTUDIO_API_KEYS:-123456}
-      - WEB_CONSOLE_USERNAME=${AISTUDIO_WEB_CONSOLE_USERNAME:-admin}
-      - WEB_CONSOLE_PASSWORD=${AISTUDIO_WEB_CONSOLE_PASSWORD:-changeme}
-      - ENABLE_AUTH_UPDATE=true
-      - MAX_CONTEXTS=${AISTUDIO_MAX_CONTEXTS:-1}
-      - LOG_LEVEL=${AISTUDIO_LOG_LEVEL:-INFO}
+      - TZ=Asia/Shanghai
     volumes:
       - ./auth:/app/configs/auth
-      - ./aistudio-data:/app/data
-    shm_size: "2gb"
+      - ./data:/app/data
     restart: unless-stopped
 
   gemini-web2api:
