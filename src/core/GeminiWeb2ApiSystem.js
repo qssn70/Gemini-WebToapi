@@ -10,7 +10,6 @@ const AuthSource = require("../auth/AuthSource");
 const BrowserPool = require("./BrowserPool");
 const GeminiPageController = require("../browser/GeminiPageController");
 const GeminiWebClient = require("../browser/GeminiWebClient");
-const ModelFetcher = require("../browser/ModelFetcher");
 const RequestHandler = require("./RequestHandler");
 const { createApiKeyAuthMiddleware } = require("../middleware/ApiKeyAuth");
 const { createHealthRoutes } = require("../routes/HealthRoutes");
@@ -67,12 +66,6 @@ class GeminiWeb2ApiSystem {
       browserPool: this.browserPool,
       pageController: this.pageController,
       logger: this.logger,
-    });
-
-    // Create model fetcher
-    this.modelFetcher = new ModelFetcher({
-      logger: this.logger,
-      config: this.config,
     });
 
     // Create request handler
@@ -158,16 +151,12 @@ class GeminiWeb2ApiSystem {
     // Gemini API routes
     const geminiRoutes = createGeminiRoutes({
       requestHandler: this.requestHandler,
-      modelFetcher: this.modelFetcher,
-      browserPool: this.browserPool,
     });
     app.use("/v1beta", apiKeyAuth, geminiRoutes);
 
     // OpenAI-compatible routes
     const openaiRoutes = createOpenAIRoutes({
       requestHandler: this.requestHandler,
-      modelFetcher: this.modelFetcher,
-      browserPool: this.browserPool,
     });
     app.use("/", apiKeyAuth, openaiRoutes);
 
