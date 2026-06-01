@@ -4,30 +4,24 @@
  */
 
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
 
-function createGeminiRoutes({ requestHandler }) {
+function createGeminiRoutes({ requestHandler, modelFetcher, browserPool }) {
   const router = express.Router();
 
   // List models
-  router.get("/models", (req, res) => {
-    const modelsPath = path.join(__dirname, "../../configs/models.json");
+  router.get("/models", async (req, res) => {
     try {
-      const data = JSON.parse(fs.readFileSync(modelsPath, "utf-8"));
-      res.json(data);
+      // Try to get browser page for dynamic fetch
+      let page = null;
+      try {
+        const session = await browserPool.getCurrentSession();
+        page = session.page;
+      } catch {}
+
+      const models = await modelFetcher.getModels(page);
+      res.json({ models });
     } catch (err) {
-      res.json({
-        models: [
-          {
-            name: "models/gemini-web",
-            version: "web",
-            displayName: "Gemini Web",
-            description: "Gemini Web through browser automation",
-            supportedGenerationMethods: ["generateContent"],
-          },
-        ],
-      });
+      res.json({ models: [] });
     }
   });
 
@@ -37,7 +31,6 @@ function createGeminiRoutes({ requestHandler }) {
   });
 
   // generateContent with colon-style: /models/gemini-web:generateContent
-  // The :modelAction param captures "gemini-web:generateContent"
   router.post("/models/:modelAction", (req, res) => {
     const modelAction = req.params.modelAction;
     if (modelAction && modelAction.endsWith(":generateContent")) {
