@@ -39,11 +39,13 @@ class GeminiPageController {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       });
-      await sleep(2000);
+      await sleep(this.config.pageNavigationDelayMs ?? 2000);
     }
 
-    // Check for login state
-    await this._checkLoginState(page);
+    // Check for login state. Gemini can briefly render logged-out UI while
+    // Google cookies are still being applied after navigation, so wait for the
+    // state to settle before treating the auth file as invalid.
+    await this._waitForReadyAuthState(page);
   }
 
   /**
@@ -199,6 +201,36 @@ class GeminiPageController {
   }
 
   /**
+   * Wait for Gemini's initial auth state to settle after navigation.
+   */
+  async _waitForReadyAuthState(page) {
+    const maxWaitMs = this.config.authStateWaitMs ?? 10000;
+    const pollIntervalMs = this.config.authStatePollMs ?? 500;
+    const startTime = Date.now();
+    let lastState = "unknown";
+
+    while (Date.now() - startTime < maxWaitMs) {
+      const diagnostics = await this._diagnosePageState(page);
+      lastState = diagnostics.state;
+      this.logger.debug(`[PageController] Auth state check: ${formatPageDiagnostics(diagnostics)}`);
+      if (lastState === "ready") {
+        return;
+      }
+      if (lastState === "quota_exceeded") {
+        throw new QuotaExceededError("Gemini page shows quota exceeded.");
+      }
+      await sleep(pollIntervalMs);
+    }
+
+    if (lastState === "login_required") {
+      throw new AuthRequiredError("Gemini page requires login.");
+    }
+    if (lastState === "quota_exceeded") {
+      throw new QuotaExceededError("Gemini page shows quota exceeded.");
+    }
+  }
+
+  /**
    * Check login state and throw appropriate error.
    */
   async _checkLoginState(page) {
@@ -209,6 +241,54 @@ class GeminiPageController {
     if (state === "quota_exceeded") {
       throw new QuotaExceededError("Gemini page shows quota exceeded.");
     }
+  }
+
+  /**
+   * Collect safe diagnostics for the current Gemini page state.
+   */
+  async _diagnosePageState(page) {
+    const diagnostics = {
+      state: "ready",
+      url: safePageUrl(page),
+      title: await safePageTitle(page),
+      loginSelector: "",
+      quotaSelector: "",
+      inputSelector: "",
+    };
+
+    for (const selector of selectors.loginHints) {
+      try {
+        const el = await page.$(selector);
+        if (el) {
+          diagnostics.state = "login_required";
+          diagnostics.loginSelector = selector;
+          return diagnostics;
+        }
+      } catch {}
+    }
+
+    for (const selector of selectors.quotaHints) {
+      try {
+        const el = await page.$(selector);
+        if (el) {
+          diagnostics.state = "quota_exceeded";
+          diagnostics.quotaSelector = selector;
+          return diagnostics;
+        }
+      } catch {}
+    }
+
+    for (const selector of selectors.input) {
+      try {
+        const el = await page.$(selector);
+        if (el) {
+          diagnostics.inputSelector = selector;
+          return diagnostics;
+        }
+      } catch {}
+    }
+
+    return diagnostics;
   }
 
   /**
@@ -298,6 +378,33 @@ class GeminiPageController {
       } catch {}
     }
     return null;
+  }
+}
+
+function formatPageDiagnostics(diagnostics) {
+  return [
+    `state=${diagnostics.state}`,
+    `url=${diagnostics.url}`,
+    `title=${diagnostics.title}`,
+    `loginSelector=${diagnostics.loginSelector}`,
+    `quotaSelector=${diagnostics.quotaSelector}`,
+    `inputSelector=${diagnostics.inputSelector}`,
+  ].join(" ");
+}
+
+function safePageUrl(page) {
+  try {
+    return page.url();
+  } catch {
+    return "";
+  }
+}
+
+async function safePageTitle(page) {
+  try {
+    return await page.title();
+  } catch {
+    return "";
   }
 }
 

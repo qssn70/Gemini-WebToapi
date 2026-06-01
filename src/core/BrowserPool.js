@@ -166,6 +166,7 @@ class BrowserPool {
     }
 
     this.logger.info(`[BrowserPool] Creating context for auth index ${authIndex}...`);
+    this.logger.debug(`[BrowserPool] Auth storageState summary: ${formatAuthSummary(authIndex, storageState)}`);
 
     const context = await this.browser.newContext({ storageState });
     const page = await context.newPage();
@@ -220,6 +221,43 @@ class BrowserPool {
       this.logger.warn(`[BrowserPool] Failed to write back auth file: ${err.message}`);
     }
   }
+}
+
+function formatAuthSummary(authIndex, storageState) {
+  const cookies = Array.isArray(storageState.cookies) ? storageState.cookies : [];
+  const origins = Array.isArray(storageState.origins) ? storageState.origins : [];
+  const googleCookies = cookies.filter((cookie) => String(cookie.domain || "").includes("google"));
+  const cookieDomains = [...new Set(cookies.map((cookie) => cookie.domain).filter(Boolean))].sort();
+  const originList = [...new Set(origins.map((origin) => origin.origin).filter(Boolean))].sort();
+  const importantNames = [
+    "SID",
+    "HSID",
+    "SSID",
+    "APISID",
+    "SAPISID",
+    "__Secure-1PSID",
+    "__Secure-3PSID",
+    "__Secure-1PSIDTS",
+    "__Secure-3PSIDTS",
+    "__Secure-1PSIDCC",
+    "__Secure-3PSIDCC",
+    "OSID",
+    "__Secure-OSID",
+    "COMPASS",
+  ];
+  const presentImportantCookies = importantNames.filter((name) => cookies.some((cookie) => cookie.name === name));
+
+  return [
+    `authIndex=${authIndex}`,
+    `accountName=${storageState.accountName || ""}`,
+    `expired=${storageState.expired === true}`,
+    `cookieCount=${cookies.length}`,
+    `googleCookieCount=${googleCookies.length}`,
+    `cookieDomains=${cookieDomains.join(",")}`,
+    `importantCookies=${presentImportantCookies.join(",")}`,
+    `originCount=${origins.length}`,
+    `origins=${originList.join(",")}`,
+  ].join(" ");
 }
 
 module.exports = BrowserPool;
