@@ -313,8 +313,8 @@ function buildTestBody() {
     generationConfig: {
       temperature: Number(byId("testTemp")?.value || 0),
       maxOutputTokens: Number(byId("testMaxTokens")?.value || 0),
+      thinkingLevel: byId("testThinkingLevel")?.value || "standard",
     },
-    thinkingLevel: byId("testThinkingLevel")?.value || "standard",
   };
 
   const systemInstruction = byId("testSystem")?.value || "";
