@@ -142,6 +142,8 @@ describe("WebRoutes", () => {
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("text/css");
     expect(res.text).toContain(":root");
+    expect(res.text).toContain(".tabs { display: flex;");
+    expect(res.text).toContain(".result-box.show { display: block; }");
   });
 
   test("GET /ui/app.js serves client script", async () => {
