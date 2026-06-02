@@ -270,6 +270,33 @@ describe("WebRoutes", () => {
     );
   });
 
+
+  test("POST /api/debug/page captures artifacts when enabled", async () => {
+    const page = {
+      content: jest.fn(async () => "<html>debug</html>"),
+      screenshot: jest.fn(async () => undefined),
+      url: jest.fn(() => "https://gemini.google.com/app"),
+    };
+    const app = createApp({
+      browserPool: {
+        browser: {},
+        currentAuthIndex: 0,
+        getCurrentSession: jest.fn(async () => ({ page })),
+      },
+      configOverride: { enablePageDebug: true },
+    });
+
+    const res = await request(app).post("/api/debug/page");
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.htmlPath).toContain("gemini-page-");
+    expect(res.body.screenshotPath).toContain("gemini-page-");
+    expect(res.body.url).toBe("https://gemini.google.com/app");
+    expect(page.content).toHaveBeenCalledTimes(1);
+    expect(page.screenshot).toHaveBeenCalledTimes(1);
+  });
+
   test("POST /api/debug/page returns disabled error when page debug is off", async () => {
     const app = createApp({
       browserPool: { browser: {}, currentAuthIndex: null },
