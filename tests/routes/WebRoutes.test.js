@@ -158,6 +158,8 @@ describe("WebRoutes", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("javascript");
-    expect(res.text).toContain("function apiRequest");
+    expect(res.text).toContain("const API_BASE = \"\";");
+    expect(res.text).toContain("function refreshStatus");
+    expect(res.text).toContain("window.WebUi");
   });
 });
