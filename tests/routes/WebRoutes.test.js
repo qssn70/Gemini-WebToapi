@@ -1,6 +1,28 @@
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const request = require("supertest");
 const { createWebRoutes } = require("../../src/routes/WebRoutes");
+
+const debugDir = path.join(process.cwd(), "debug");
+
+async function removeDebugArtifacts(paths = []) {
+  await Promise.all(paths.filter(Boolean).map(async (filePath) => {
+    await fs.promises.rm(filePath, { force: true });
+  }));
+
+  try {
+    const entries = await fs.promises.readdir(debugDir);
+    await Promise.all(entries.map(async (entry) => {
+      await fs.promises.rm(path.join(debugDir, entry), { force: true, recursive: true });
+    }));
+    await fs.promises.rmdir(debugDir);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      throw error;
+    }
+  }
+}
 
 function createLogger() {
   return {
@@ -56,6 +78,10 @@ function createApp({ browserPool, authSourceOverride = {}, requestHandlerOverrid
 }
 
 describe("WebRoutes", () => {
+  afterEach(async () => {
+    await removeDebugArtifacts();
+  });
+
   test("GET /api/status exposes runtime failed account state", async () => {
     const app = createApp({
       browserPool: {
@@ -286,15 +312,25 @@ describe("WebRoutes", () => {
       configOverride: { enablePageDebug: true },
     });
 
-    const res = await request(app).post("/api/debug/page");
+    let htmlPath;
+    let screenshotPath;
 
-    expect(res.status).toBe(200);
-    expect(res.body.ok).toBe(true);
-    expect(res.body.htmlPath).toContain("gemini-page-");
-    expect(res.body.screenshotPath).toContain("gemini-page-");
-    expect(res.body.url).toBe("https://gemini.google.com/app");
-    expect(page.content).toHaveBeenCalledTimes(1);
-    expect(page.screenshot).toHaveBeenCalledTimes(1);
+    try {
+      const res = await request(app).post("/api/debug/page");
+
+      htmlPath = res.body.htmlPath;
+      screenshotPath = res.body.screenshotPath;
+
+      expect(res.status).toBe(200);
+      expect(res.body.ok).toBe(true);
+      expect(htmlPath).toContain("gemini-page-");
+      expect(screenshotPath).toContain("gemini-page-");
+      expect(res.body.url).toBe("https://gemini.google.com/app");
+      expect(page.content).toHaveBeenCalledTimes(1);
+      expect(page.screenshot).toHaveBeenCalledTimes(1);
+    } finally {
+      await removeDebugArtifacts([htmlPath]);
+    }
   });
 
   test("POST /api/debug/page returns disabled error when page debug is off", async () => {
