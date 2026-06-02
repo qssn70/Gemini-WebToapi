@@ -194,17 +194,22 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
   // Test generateContent (proxies through requestHandler)
   router.post("/api/test/generate", async (req, res) => {
     try {
-      // Build a fake Express-like req/res for the request handler
+      const model = req.body.model || config.defaultModel;
+      const contents = req.body.contents || [
+        { role: "user", parts: [{ text: req.body.prompt || "Hello" }] },
+      ];
+
       const fakeReq = {
-        params: { model: req.body.model || config.defaultModel },
+        params: { model },
         body: {
-          contents: req.body.contents || [
-            { role: "user", parts: [{ text: req.body.prompt || "Hello" }] },
-          ],
-          systemInstruction: req.body.systemInstruction || undefined,
+          contents,
           generationConfig: req.body.generationConfig || {},
         },
       };
+
+      if (req.body.systemInstruction !== undefined) {
+        fakeReq.body.systemInstruction = req.body.systemInstruction;
+      }
 
       let responseData = null;
       let statusCode = 200;
@@ -222,10 +227,10 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
 
       await requestHandler.handleGeminiGenerate(fakeReq, fakeRes);
 
-      res.status(statusCode).json(responseData);
+      return res.status(statusCode).json(responseData);
     } catch (err) {
       logger.error(`[WebUI] Test generate failed: ${err.message}`);
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           message: err.message,
           type: err.name || "Error",

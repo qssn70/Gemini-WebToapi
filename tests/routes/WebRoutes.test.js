@@ -12,7 +12,7 @@ function createLogger() {
   };
 }
 
-function createApp({ browserPool, authSourceOverride = {} }) {
+function createApp({ browserPool, authSourceOverride = {}, requestHandlerOverride = {}, configOverride = {} }) {
   const app = express();
   app.use(express.json());
 
@@ -29,13 +29,13 @@ function createApp({ browserPool, authSourceOverride = {} }) {
 
   const modelRegistry = {
     defaultModel: "gemini-test",
-    models: [],
+    models: [{ id: "gemini-test", displayName: "Gemini Test", webModelLabel: "Gemini Test" }],
   };
 
   app.use("/", createWebRoutes({
     authSource,
     browserPool,
-    requestHandler: {},
+    requestHandler: requestHandlerOverride,
     modelRegistry,
     config: {
       maxRetries: 2,
@@ -47,6 +47,7 @@ function createApp({ browserPool, authSourceOverride = {} }) {
       geminiWebUrl: "https://gemini.google.com/app",
       tempConversationMode: true,
       enablePageDebug: false,
+      ...configOverride,
     },
     logger: createLogger(),
   }));
@@ -161,5 +162,98 @@ describe("WebRoutes", () => {
     expect(res.text).toContain("const API_BASE = \"\";");
     expect(res.text).toContain("function refreshStatus");
     expect(res.text).toContain("window.WebUi");
+  });
+
+  test("POST /api/account/switch rejects missing authIndex", async () => {
+    const app = createApp({
+      browserPool: {
+        browser: {},
+        currentAuthIndex: null,
+        switchToAccount: jest.fn(),
+      },
+    });
+
+    const res = await request(app).post("/api/account/switch").send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.message).toContain("authIndex");
+  });
+
+  test("POST /api/account/switch returns selected account", async () => {
+    const browserPool = {
+      browser: {},
+      currentAuthIndex: null,
+      switchToAccount: jest.fn(async (authIndex) => ({ authIndex })),
+    };
+    const app = createApp({ browserPool });
+
+    const res = await request(app).post("/api/account/switch").send({ authIndex: 3 });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, currentAuthIndex: 3 });
+    expect(browserPool.switchToAccount).toHaveBeenCalledWith(3);
+  });
+
+  test("POST /api/test/generate passes WebUI body through Gemini handler", async () => {
+    const requestHandler = {
+      handleGeminiGenerate: jest.fn(async (req, res) => res.json({ ok: true, model: req.params.model, body: req.body })),
+    };
+    const app = createApp({
+      browserPool: { browser: {}, currentAuthIndex: null },
+      requestHandlerOverride: requestHandler,
+    });
+
+    const body = {
+      model: "gemini-test",
+      contents: [{ role: "user", parts: [{ text: "hello" }] }],
+      systemInstruction: { parts: [{ text: "be brief" }] },
+      generationConfig: { temperature: 0.2, maxOutputTokens: 100, thinkingLevel: "standard" },
+    };
+
+    const res = await request(app).post("/api/test/generate").send(body);
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.model).toBe("gemini-test");
+    expect(res.body.body).toEqual({
+      contents: body.contents,
+      systemInstruction: body.systemInstruction,
+      generationConfig: body.generationConfig,
+    });
+    expect(requestHandler.handleGeminiGenerate).toHaveBeenCalledTimes(1);
+  });
+
+  test("POST /api/test/generate omits systemInstruction when absent", async () => {
+    const requestHandler = {
+      handleGeminiGenerate: jest.fn(async (req, res) => {
+        expect(Object.prototype.hasOwnProperty.call(req.body, "systemInstruction")).toBe(false);
+        return res.json({ ok: true, body: req.body });
+      }),
+    };
+    const app = createApp({
+      browserPool: { browser: {}, currentAuthIndex: null },
+      requestHandlerOverride: requestHandler,
+    });
+
+    const res = await request(app).post("/api/test/generate").send({
+      contents: [{ role: "user", parts: [{ text: "hello" }] }],
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.body).toEqual({
+      contents: [{ role: "user", parts: [{ text: "hello" }] }],
+      generationConfig: {},
+    });
+  });
+
+  test("POST /api/debug/page returns disabled error when page debug is off", async () => {
+    const app = createApp({
+      browserPool: { browser: {}, currentAuthIndex: null },
+    });
+
+    const res = await request(app).post("/api/debug/page");
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.type).toBe("not_enabled");
   });
 });
