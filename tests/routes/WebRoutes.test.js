@@ -7,15 +7,22 @@ const { createWebRoutes } = require("../../src/routes/WebRoutes");
 const debugDir = path.join(process.cwd(), "debug");
 
 async function removeDebugArtifacts(paths = []) {
-  await Promise.all(paths.filter(Boolean).map(async (filePath) => {
-    await fs.promises.rm(filePath, { force: true });
-  }));
+  await Promise.all(
+    paths.filter(Boolean).map(async (filePath) => {
+      await fs.promises.rm(filePath, { force: true });
+    }),
+  );
 
   try {
     const entries = await fs.promises.readdir(debugDir);
-    await Promise.all(entries.map(async (entry) => {
-      await fs.promises.rm(path.join(debugDir, entry), { force: true, recursive: true });
-    }));
+    await Promise.all(
+      entries.map(async (entry) => {
+        await fs.promises.rm(path.join(debugDir, entry), {
+          force: true,
+          recursive: true,
+        });
+      }),
+    );
     await fs.promises.rmdir(debugDir);
   } catch (error) {
     if (error.code !== "ENOENT") {
@@ -34,7 +41,12 @@ function createLogger() {
   };
 }
 
-function createApp({ browserPool, authSourceOverride = {}, requestHandlerOverride = {}, configOverride = {} }) {
+function createApp({
+  browserPool,
+  authSourceOverride = {},
+  requestHandlerOverride = {},
+  configOverride = {},
+}) {
   const app = express();
   app.use(express.json());
 
@@ -51,28 +63,37 @@ function createApp({ browserPool, authSourceOverride = {}, requestHandlerOverrid
 
   const modelRegistry = {
     defaultModel: "gemini-test",
-    models: [{ id: "gemini-test", displayName: "Gemini Test", webModelLabel: "Gemini Test" }],
+    models: [
+      {
+        id: "gemini-test",
+        displayName: "Gemini Test",
+        webModelLabel: "Gemini Test",
+      },
+    ],
   };
 
-  app.use("/", createWebRoutes({
-    authSource,
-    browserPool,
-    requestHandler: requestHandlerOverride,
-    modelRegistry,
-    config: {
-      maxRetries: 2,
-      retryDelayMs: 1500,
-      requestTimeoutMs: 120000,
-      browserHeadless: true,
-      maxContexts: 1,
-      enableAuthUpdate: false,
-      geminiWebUrl: "https://gemini.google.com/app",
-      tempConversationMode: true,
-      enablePageDebug: false,
-      ...configOverride,
-    },
-    logger: createLogger(),
-  }));
+  app.use(
+    "/",
+    createWebRoutes({
+      authSource,
+      browserPool,
+      requestHandler: requestHandlerOverride,
+      modelRegistry,
+      config: {
+        maxRetries: 2,
+        retryDelayMs: 1500,
+        requestTimeoutMs: 120000,
+        browserHeadless: true,
+        maxContexts: 1,
+        enableAuthUpdate: false,
+        geminiWebUrl: "https://gemini.google.com/app",
+        tempConversationMode: true,
+        enablePageDebug: false,
+        ...configOverride,
+      },
+      logger: createLogger(),
+    }),
+  );
 
   return app;
 }
@@ -88,9 +109,14 @@ describe("WebRoutes", () => {
         browser: {},
         currentAuthIndex: 3,
         getRuntimeFailedAuthIndices: () => [0],
-        getAccountRuntimeStatus: (index) => index === 0
-          ? { failed: true, reason: "Gemini page requires login.", failedAt: "2026-06-01T16:30:07.191Z" }
-          : { failed: false, reason: null, failedAt: null },
+        getAccountRuntimeStatus: (index) =>
+          index === 0
+            ? {
+                failed: true,
+                reason: "Gemini page requires login.",
+                failedAt: "2026-06-01T16:30:07.191Z",
+              }
+            : { failed: false, reason: null, failedAt: null },
       },
     });
 
@@ -121,9 +147,14 @@ describe("WebRoutes", () => {
       browser: {},
       currentAuthIndex: null,
       getRuntimeFailedAuthIndices: () => [0],
-      getAccountRuntimeStatus: (index) => index === 0
-        ? { failed: true, reason: "Gemini page requires login.", failedAt: "2026-06-01T16:30:07.191Z" }
-        : { failed: false, reason: null, failedAt: null },
+      getAccountRuntimeStatus: (index) =>
+        index === 0
+          ? {
+              failed: true,
+              reason: "Gemini page requires login.",
+              failedAt: "2026-06-01T16:30:07.191Z",
+            }
+          : { failed: false, reason: null, failedAt: null },
       refreshAuthSources: jest.fn(),
     };
     const authSource = {
@@ -185,7 +216,7 @@ describe("WebRoutes", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("javascript");
-    expect(res.text).toContain("const API_BASE = \"\";");
+    expect(res.text).toContain('const API_BASE = "";');
     expect(res.text).toContain("function refreshStatus");
     expect(res.text).toContain("window.WebUi");
   });
@@ -213,7 +244,9 @@ describe("WebRoutes", () => {
     };
     const app = createApp({ browserPool });
 
-    const res = await request(app).post("/api/account/switch").send({ authIndex: 3 });
+    const res = await request(app)
+      .post("/api/account/switch")
+      .send({ authIndex: 3 });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true, currentAuthIndex: 3 });
@@ -222,7 +255,9 @@ describe("WebRoutes", () => {
 
   test("POST /api/test/generate passes WebUI body through Gemini handler", async () => {
     const requestHandler = {
-      handleGeminiGenerate: jest.fn(async (req, res) => res.json({ ok: true, model: req.params.model, body: req.body })),
+      handleGeminiGenerate: jest.fn(async (req, res) =>
+        res.json({ ok: true, model: req.params.model, body: req.body }),
+      ),
     };
     const app = createApp({
       browserPool: { browser: {}, currentAuthIndex: null },
@@ -233,7 +268,11 @@ describe("WebRoutes", () => {
       model: "gemini-test",
       contents: [{ role: "user", parts: [{ text: "hello" }] }],
       systemInstruction: { parts: [{ text: "be brief" }] },
-      generationConfig: { temperature: 0.2, maxOutputTokens: 100, thinkingLevel: "standard" },
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 100,
+        thinkingLevel: "standard",
+      },
     };
 
     const res = await request(app).post("/api/test/generate").send(body);
@@ -252,7 +291,9 @@ describe("WebRoutes", () => {
   test("POST /api/test/generate omits systemInstruction when absent", async () => {
     const requestHandler = {
       handleGeminiGenerate: jest.fn(async (req, res) => {
-        expect(Object.prototype.hasOwnProperty.call(req.body, "systemInstruction")).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(req.body, "systemInstruction"),
+        ).toBe(false);
         return res.json({ ok: true, body: req.body });
       }),
     };
@@ -261,9 +302,11 @@ describe("WebRoutes", () => {
       requestHandlerOverride: requestHandler,
     });
 
-    const res = await request(app).post("/api/test/generate").send({
-      contents: [{ role: "user", parts: [{ text: "hello" }] }],
-    });
+    const res = await request(app)
+      .post("/api/test/generate")
+      .send({
+        contents: [{ role: "user", parts: [{ text: "hello" }] }],
+      });
 
     expect(res.status).toBe(200);
     expect(res.body.body).toEqual({
@@ -274,7 +317,9 @@ describe("WebRoutes", () => {
 
   test("POST /api/test/generate uses registry default model when request omits model", async () => {
     const requestHandler = {
-      handleGeminiGenerate: jest.fn(async (req, res) => res.json({ ok: true, model: req.params.model })),
+      handleGeminiGenerate: jest.fn(async (req, res) =>
+        res.json({ ok: true, model: req.params.model }),
+      ),
     };
     const app = createApp({
       browserPool: { browser: {}, currentAuthIndex: null },
@@ -282,9 +327,11 @@ describe("WebRoutes", () => {
       configOverride: { defaultModel: "gemini-config-default" },
     });
 
-    const res = await request(app).post("/api/test/generate").send({
-      contents: [{ role: "user", parts: [{ text: "hello" }] }],
-    });
+    const res = await request(app)
+      .post("/api/test/generate")
+      .send({
+        contents: [{ role: "user", parts: [{ text: "hello" }] }],
+      });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true, model: "gemini-test" });
@@ -292,10 +339,9 @@ describe("WebRoutes", () => {
       expect.objectContaining({
         params: { model: "gemini-test" },
       }),
-      expect.any(Object)
+      expect.any(Object),
     );
   });
-
 
   test("POST /api/debug/page captures artifacts when enabled", async () => {
     const page = {

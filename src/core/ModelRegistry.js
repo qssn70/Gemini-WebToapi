@@ -21,21 +21,33 @@ const DEFAULT_MODELS = [
     displayName: "Gemini 3.1 Pro Preview",
     description: "Gemini 3.1 Pro Preview through Gemini Web browser automation",
     webModelLabel: "3.1 Pro",
-    aliases: ["models/gemini-3.1-pro-preview", "gemini-3.1-pro", "models/gemini-3.1-pro"],
+    aliases: [
+      "models/gemini-3.1-pro-preview",
+      "gemini-3.1-pro",
+      "models/gemini-3.1-pro",
+    ],
   },
 ];
 
-function createModelRegistry({ models = DEFAULT_MODELS, defaultModel = "gemini-3.1-flash-lite" } = {}) {
+function createModelRegistry({
+  models = DEFAULT_MODELS,
+  defaultModel = "gemini-3.1-flash-lite",
+} = {}) {
   const normalizedModels = models.map(normalizeModelDefinition);
   const byName = new Map();
 
   for (const model of normalizedModels) {
-    for (const name of [model.id, `models/${model.id}`, ...(model.aliases || [])]) {
+    for (const name of [
+      model.id,
+      `models/${model.id}`,
+      ...(model.aliases || []),
+    ]) {
       byName.set(normalizeModelName(name), model);
     }
   }
 
-  const defaultModelDefinition = byName.get(normalizeModelName(defaultModel)) || normalizedModels[0];
+  const defaultModelDefinition =
+    byName.get(normalizeModelName(defaultModel)) || normalizedModels[0];
 
   return {
     defaultModel: defaultModelDefinition.id,
@@ -77,7 +89,8 @@ function normalizeModelDefinition(model) {
     id: model.id,
     version: model.version || "web",
     displayName: model.displayName || model.id,
-    description: model.description || `${model.id} through Gemini Web browser automation`,
+    description:
+      model.description || `${model.id} through Gemini Web browser automation`,
     webModelLabel: model.webModelLabel || "",
     aliases: model.aliases || [],
   };
@@ -97,7 +110,9 @@ function parseModelsEnv(raw) {
     .map((entry) => entry.trim())
     .filter(Boolean)
     .map((entry) => {
-      const [idPart, labelPart, displayPart] = entry.split(":").map((part) => part.trim());
+      const [idPart, labelPart, displayPart] = entry
+        .split(":")
+        .map((part) => part.trim());
       const id = normalizeModelName(idPart);
       return {
         id,

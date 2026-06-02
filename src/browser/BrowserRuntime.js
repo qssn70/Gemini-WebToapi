@@ -54,18 +54,33 @@ function parseViewport(raw) {
   if (!match) return null;
   const width = Number(match[1]);
   const height = Number(match[2]);
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
+  if (
+    !Number.isInteger(width) ||
+    !Number.isInteger(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
     return null;
   }
   return { width, height };
 }
 
 function formatAuthSummary(authIndex, storageState) {
-  const cookies = Array.isArray(storageState.cookies) ? storageState.cookies : [];
-  const origins = Array.isArray(storageState.origins) ? storageState.origins : [];
-  const googleCookies = cookies.filter((cookie) => String(cookie.domain || "").includes("google"));
-  const cookieDomains = [...new Set(cookies.map((cookie) => cookie.domain).filter(Boolean))].sort();
-  const originList = [...new Set(origins.map((origin) => origin.origin).filter(Boolean))].sort();
+  const cookies = Array.isArray(storageState.cookies)
+    ? storageState.cookies
+    : [];
+  const origins = Array.isArray(storageState.origins)
+    ? storageState.origins
+    : [];
+  const googleCookies = cookies.filter((cookie) =>
+    String(cookie.domain || "").includes("google"),
+  );
+  const cookieDomains = [
+    ...new Set(cookies.map((cookie) => cookie.domain).filter(Boolean)),
+  ].sort();
+  const originList = [
+    ...new Set(origins.map((origin) => origin.origin).filter(Boolean)),
+  ].sort();
   const importantNames = [
     "SID",
     "HSID",
@@ -83,7 +98,9 @@ function formatAuthSummary(authIndex, storageState) {
     "COMPASS",
     "NID",
   ];
-  const presentImportantCookies = importantNames.filter((name) => cookies.some((cookie) => cookie.name === name));
+  const presentImportantCookies = importantNames.filter((name) =>
+    cookies.some((cookie) => cookie.name === name),
+  );
 
   return [
     `authIndex=${authIndex}`,

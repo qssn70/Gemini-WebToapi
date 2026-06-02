@@ -2,7 +2,12 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-function createMockResponse({ ok = true, status = 200, body = "", statusText = "OK" } = {}) {
+function createMockResponse({
+  ok = true,
+  status = 200,
+  body = "",
+  statusText = "OK",
+} = {}) {
   return {
     ok,
     status,
@@ -74,7 +79,10 @@ function createDomEnvironment() {
         return this.attributes.has(name) ? this.attributes.get(name) : null;
       },
       closest(selector) {
-        if (selector === "[data-auth-index]" && this.dataset.authIndex !== undefined) {
+        if (
+          selector === "[data-auth-index]" &&
+          this.dataset.authIndex !== undefined
+        ) {
           return this;
         }
         return null;
@@ -117,7 +125,10 @@ function createDomEnvironment() {
     ["clearLogsBtn"],
     ["pauseRefresh", { checked: false }],
     ["autoScroll", { checked: true }],
-    ["logBox", { textContent: "等待加载...", scrollHeight: 300, clientHeight: 120 }],
+    [
+      "logBox",
+      { textContent: "等待加载...", scrollHeight: 300, clientHeight: 120 },
+    ],
     ["configTable"],
     ["debugStatus", { textContent: "等待状态加载..." }],
     ["debugPageBtn"],
@@ -169,7 +180,9 @@ function createDomEnvironment() {
     elementsById,
     accountSwitchButtons,
     createAccountSwitchButton(index) {
-      const button = createElement(`account-switch-${index}`, { dataset: { authIndex: String(index) } });
+      const button = createElement(`account-switch-${index}`, {
+        dataset: { authIndex: String(index) },
+      });
       accountSwitchButtons.push(button);
       return button;
     },
@@ -177,7 +190,10 @@ function createDomEnvironment() {
 }
 
 function loadWebUi({ fetchImpl, intervalImpl } = {}) {
-  const source = fs.readFileSync(path.join(__dirname, "../../ui/app.js"), "utf-8");
+  const source = fs.readFileSync(
+    path.join(__dirname, "../../ui/app.js"),
+    "utf-8",
+  );
   const dom = createDomEnvironment();
   const context = {
     console,
@@ -198,12 +214,16 @@ function loadWebUi({ fetchImpl, intervalImpl } = {}) {
 
 describe("Web UI client", () => {
   test("apiRequest returns plain text when response is not JSON", async () => {
-    const fetch = jest.fn().mockResolvedValue(
-      createMockResponse({ status: 200, body: "plain text body" })
-    );
+    const fetch = jest
+      .fn()
+      .mockResolvedValue(
+        createMockResponse({ status: 200, body: "plain text body" }),
+      );
     const { WebUi } = loadWebUi({ fetchImpl: fetch });
 
-    await expect(WebUi.apiRequest("/api/logs")).resolves.toBe("plain text body");
+    await expect(WebUi.apiRequest("/api/logs")).resolves.toBe(
+      "plain text body",
+    );
   });
 
   test("apiRequest uses nested API error message for failed responses", async () => {
@@ -213,13 +233,13 @@ describe("Web UI client", () => {
         status: 400,
         body: JSON.stringify({ error: { message: "Cannot switch account" } }),
         statusText: "Bad Request",
-      })
+      }),
     );
     const { WebUi } = loadWebUi({ fetchImpl: fetch });
 
-    await expect(WebUi.apiRequest("/api/account/switch", { method: "POST" })).rejects.toThrow(
-      "Cannot switch account"
-    );
+    await expect(
+      WebUi.apiRequest("/api/account/switch", { method: "POST" }),
+    ).rejects.toThrow("Cannot switch account");
   });
 
   test("refreshStatus renders dashboard, accounts, logs, config, and model select", async () => {
@@ -271,18 +291,36 @@ describe("Web UI client", () => {
         enablePageDebug: true,
         defaultModel: "gemini-2.5-pro",
         models: [
-          { id: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro", webModelLabel: "2.5 Pro" },
-          { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", webModelLabel: "2.5 Flash" },
+          {
+            id: "gemini-2.5-pro",
+            displayName: "Gemini 2.5 Pro",
+            webModelLabel: "2.5 Pro",
+          },
+          {
+            id: "gemini-2.5-flash",
+            displayName: "Gemini 2.5 Flash",
+            webModelLabel: "2.5 Flash",
+          },
         ],
       },
       logs: [
-        { timestamp: "2026-06-02T10:00:00.000Z", level: "INFO", message: "Started" },
-        { timestamp: "2026-06-02T10:01:00.000Z", level: "WARN", message: "Slow request" },
+        {
+          timestamp: "2026-06-02T10:00:00.000Z",
+          level: "INFO",
+          message: "Started",
+        },
+        {
+          timestamp: "2026-06-02T10:01:00.000Z",
+          level: "WARN",
+          message: "Slow request",
+        },
       ],
     };
-    const fetch = jest.fn().mockResolvedValue(
-      createMockResponse({ body: JSON.stringify(statusPayload) })
-    );
+    const fetch = jest
+      .fn()
+      .mockResolvedValue(
+        createMockResponse({ body: JSON.stringify(statusPayload) }),
+      );
     const { WebUi, elementsById } = loadWebUi({ fetchImpl: fetch });
 
     await WebUi.refreshStatus(true);
@@ -294,9 +332,13 @@ describe("Web UI client", () => {
     expect(elementsById.get("sDuplicate").textContent).toBe("1");
     expect(elementsById.get("sRuntimeFailed").textContent).toBe("1");
     expect(elementsById.get("accountTable").innerHTML).toContain("Needs login");
-    expect(elementsById.get("accountTable").innerHTML).toContain('data-auth-index="3"');
+    expect(elementsById.get("accountTable").innerHTML).toContain(
+      'data-auth-index="3"',
+    );
     expect(elementsById.get("testModel").innerHTML).toContain("gemini-2.5-pro");
-    expect(elementsById.get("configTable").innerHTML).toContain("enablePageDebug");
+    expect(elementsById.get("configTable").innerHTML).toContain(
+      "enablePageDebug",
+    );
     expect(elementsById.get("debugStatus").textContent).toContain("已启用");
     expect(elementsById.get("debugPageBtn").disabled).toBe(false);
     expect(elementsById.get("logBox").textContent).toContain("Started");
@@ -338,22 +380,22 @@ describe("Web UI client", () => {
 
     expect(elementsById.get("noAccounts").hidden).toBe(true);
     expect(elementsById.get("accountTable").innerHTML).toContain("运行失败");
-    expect(elementsById.get("accountTable").innerHTML).toContain("Page redirected to login");
-    expect(elementsById.get("accountTable").innerHTML).toContain('data-auth-index="7"');
+    expect(elementsById.get("accountTable").innerHTML).toContain(
+      "Page redirected to login",
+    );
+    expect(elementsById.get("accountTable").innerHTML).toContain(
+      'data-auth-index="7"',
+    );
   });
 
   test("runTest builds request body and renders result", async () => {
-    const fetch = jest
-      .fn()
-      .mockResolvedValueOnce(
-        createMockResponse({
-          body: JSON.stringify({
-            candidates: [
-              { content: { parts: [{ text: "Hello from Gemini" }] } },
-            ],
-          }),
-        })
-      );
+    const fetch = jest.fn().mockResolvedValueOnce(
+      createMockResponse({
+        body: JSON.stringify({
+          candidates: [{ content: { parts: [{ text: "Hello from Gemini" }] } }],
+        }),
+      }),
+    );
     const { WebUi, elementsById } = loadWebUi({ fetchImpl: fetch });
     elementsById.get("testModel").value = "gemini-2.5-flash";
     elementsById.get("testPrompt").value = "Say hello";
@@ -369,7 +411,7 @@ describe("Web UI client", () => {
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
-      })
+      }),
     );
     const requestBody = JSON.parse(fetch.mock.calls[0][1].body);
     expect(requestBody).toEqual({
@@ -382,7 +424,9 @@ describe("Web UI client", () => {
         thinkingLevel: "extended",
       },
     });
-    expect(elementsById.get("testResult").textContent).toContain("Hello from Gemini");
+    expect(elementsById.get("testResult").textContent).toContain(
+      "Hello from Gemini",
+    );
     expect(elementsById.get("testBtn").disabled).toBe(false);
   });
 
@@ -395,13 +439,16 @@ describe("Web UI client", () => {
           screenshotPath: "/tmp/debug/page.png",
           url: "https://gemini.google.com/app",
         }),
-      })
+      }),
     );
     const { WebUi, elementsById } = loadWebUi({ fetchImpl: fetch });
 
     await WebUi.captureDebugPage();
 
-    expect(fetch).toHaveBeenCalledWith("/api/debug/page", expect.objectContaining({ method: "POST" }));
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/debug/page",
+      expect.objectContaining({ method: "POST" }),
+    );
     expect(elementsById.get("debugResult").textContent).toContain("page.html");
     expect(elementsById.get("debugResult").textContent).toContain("page.png");
   });
@@ -411,11 +458,21 @@ describe("Web UI client", () => {
 
     WebUi.switchTab("logs");
 
-    expect(elementsById.get("tab-button-logs").classList.contains("active")).toBe(true);
-    expect(elementsById.get("tab-button-logs").getAttribute("aria-selected")).toBe("true");
-    expect(elementsById.get("tab-button-dashboard").classList.contains("active")).toBe(false);
-    expect(elementsById.get("tab-dashboard").classList.contains("active")).toBe(false);
-    expect(elementsById.get("tab-logs").classList.contains("active")).toBe(true);
+    expect(
+      elementsById.get("tab-button-logs").classList.contains("active"),
+    ).toBe(true);
+    expect(
+      elementsById.get("tab-button-logs").getAttribute("aria-selected"),
+    ).toBe("true");
+    expect(
+      elementsById.get("tab-button-dashboard").classList.contains("active"),
+    ).toBe(false);
+    expect(elementsById.get("tab-dashboard").classList.contains("active")).toBe(
+      false,
+    );
+    expect(elementsById.get("tab-logs").classList.contains("active")).toBe(
+      true,
+    );
   });
 
   test("bindEvents wires keyboard shortcut and account switch delegation", async () => {
@@ -423,19 +480,30 @@ describe("Web UI client", () => {
       .fn()
       .mockResolvedValueOnce(
         createMockResponse({
-          body: JSON.stringify({ candidates: [{ content: { parts: [{ text: "Shortcut" }] } }] }),
-        })
+          body: JSON.stringify({
+            candidates: [{ content: { parts: [{ text: "Shortcut" }] } }],
+          }),
+        }),
       )
       .mockResolvedValueOnce(
-        createMockResponse({ body: JSON.stringify({ ok: true, currentAuthIndex: 9 }) })
+        createMockResponse({
+          body: JSON.stringify({ ok: true, currentAuthIndex: 9 }),
+        }),
       );
-    const { WebUi, elementsById, document, createAccountSwitchButton } = loadWebUi({ fetchImpl: fetch });
+    const { WebUi, elementsById, document, createAccountSwitchButton } =
+      loadWebUi({ fetchImpl: fetch });
     const accountButton = createAccountSwitchButton(9);
 
     WebUi.bindEvents();
 
     const keydownHandler = elementsById.get("testPrompt").listeners.keydown[0];
-    await keydownHandler({ type: "keydown", key: "Enter", metaKey: true, ctrlKey: false, preventDefault: jest.fn() });
+    await keydownHandler({
+      type: "keydown",
+      key: "Enter",
+      metaKey: true,
+      ctrlKey: false,
+      preventDefault: jest.fn(),
+    });
 
     expect(fetch.mock.calls[0][0]).toBe("/api/test/generate");
 
@@ -456,12 +524,18 @@ describe("Web UI client", () => {
           config: { models: [], enablePageDebug: false },
           logs: [],
         }),
-      })
+      }),
     );
     const setInterval = jest.fn(() => 123);
-    const { WebUi, context } = loadWebUi({ fetchImpl: fetch, intervalImpl: setInterval });
+    const { WebUi, context } = loadWebUi({
+      fetchImpl: fetch,
+      intervalImpl: setInterval,
+    });
 
-    expect(context.document.addEventListener).toHaveBeenCalledWith("DOMContentLoaded", expect.any(Function));
+    expect(context.document.addEventListener).toHaveBeenCalledWith(
+      "DOMContentLoaded",
+      expect.any(Function),
+    );
 
     const domReadyHandler = context.document.addEventListener.mock.calls[0][1];
     await domReadyHandler();

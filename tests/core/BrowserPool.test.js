@@ -11,7 +11,9 @@ function createLogger() {
 }
 
 function createAuthSource(storageByIndex) {
-  const indices = Object.keys(storageByIndex).map(Number).sort((a, b) => a - b);
+  const indices = Object.keys(storageByIndex)
+    .map(Number)
+    .sort((a, b) => a - b);
   return {
     reload: jest.fn(),
     getRotationIndices: jest.fn(() => [...indices]),
@@ -24,9 +26,24 @@ function makeStorage(index, overrides = {}) {
     accountName: `user${index}@example.com`,
     expired: false,
     cookies: [
-      { name: "SID", value: `secret-sid-${index}`, domain: ".google.com", path: "/" },
-      { name: "__Secure-1PSID", value: `secret-psid-${index}`, domain: ".google.com", path: "/" },
-      { name: "OTHER", value: `secret-other-${index}`, domain: ".example.com", path: "/" },
+      {
+        name: "SID",
+        value: `secret-sid-${index}`,
+        domain: ".google.com",
+        path: "/",
+      },
+      {
+        name: "__Secure-1PSID",
+        value: `secret-psid-${index}`,
+        domain: ".google.com",
+        path: "/",
+      },
+      {
+        name: "OTHER",
+        value: `secret-other-${index}`,
+        domain: ".example.com",
+        path: "/",
+      },
     ],
     origins: [
       { origin: "https://gemini.google.com", localStorage: [] },
@@ -52,20 +69,26 @@ describe("BrowserPool", () => {
     const browserPool = new BrowserPool({
       config: { browserHeadless: true },
       logger,
-      authSource: createAuthSource({ 0: makeStorage(0, { accountName: "user@example.com" }) }),
+      authSource: createAuthSource({
+        0: makeStorage(0, { accountName: "user@example.com" }),
+      }),
     });
     browserPool.browser = browser;
 
     await browserPool.getCurrentSession();
 
-    const logOutput = logger.debug.mock.calls.map((call) => call.join(" ")).join("\n");
+    const logOutput = logger.debug.mock.calls
+      .map((call) => call.join(" "))
+      .join("\n");
     expect(logOutput).toContain("[BrowserPool] Auth storageState summary");
     expect(logOutput).toContain("authIndex=0");
     expect(logOutput).toContain("accountName=user@example.com");
     expect(logOutput).toContain("cookieCount=3");
     expect(logOutput).toContain("googleCookieCount=2");
     expect(logOutput).toContain("importantCookies=SID,__Secure-1PSID");
-    expect(logOutput).toContain("origins=https://accounts.google.com,https://gemini.google.com");
+    expect(logOutput).toContain(
+      "origins=https://accounts.google.com,https://gemini.google.com",
+    );
     expect(logOutput).not.toContain("secret-sid-0");
     expect(logOutput).not.toContain("secret-psid-0");
     expect(logOutput).not.toContain("secret-other-0");
@@ -81,17 +104,27 @@ describe("BrowserPool", () => {
     browserPool.browser = createBrowser();
 
     expect((await browserPool.getCurrentSession()).authIndex).toBe(0);
-    expect((await browserPool.markCurrentAccountFailed("Gemini page requires login.")).authIndex).toBe(3);
+    expect(
+      (
+        await browserPool.markCurrentAccountFailed(
+          "Gemini page requires login.",
+        )
+      ).authIndex,
+    ).toBe(3);
 
     expect(browserPool.getRuntimeFailedAuthIndices()).toEqual([0]);
     expect(browserPool.getAccountRuntimeStatus(0)).toMatchObject({
       failed: true,
       reason: "Gemini page requires login.",
     });
-    expect(browserPool.getAccountRuntimeStatus(3)).toMatchObject({ failed: false });
+    expect(browserPool.getAccountRuntimeStatus(3)).toMatchObject({
+      failed: false,
+    });
 
     expect((await browserPool.rotate("manual")).authIndex).toBe(3);
-    await expect(browserPool.markCurrentAccountFailed("Gemini page requires login.")).rejects.toBeInstanceOf(NoAuthAvailableError);
+    await expect(
+      browserPool.markCurrentAccountFailed("Gemini page requires login."),
+    ).rejects.toBeInstanceOf(NoAuthAvailableError);
     expect(browserPool.getRuntimeFailedAuthIndices()).toEqual([0, 3]);
     expect(browserPool.currentAuthIndex).toBeNull();
   });
@@ -106,10 +139,16 @@ describe("BrowserPool", () => {
     browserPool.browser = createBrowser();
 
     await browserPool.getCurrentSession();
-    await expect(browserPool.markCurrentAccountFailed("Gemini page requires login.")).rejects.toBeInstanceOf(NoAuthAvailableError);
+    await expect(
+      browserPool.markCurrentAccountFailed("Gemini page requires login."),
+    ).rejects.toBeInstanceOf(NoAuthAvailableError);
 
-    const warnOutput = logger.warn.mock.calls.map((call) => call.join(" ")).join("\n");
-    expect(warnOutput).toContain("[BrowserPool] Failed auth storageState summary");
+    const warnOutput = logger.warn.mock.calls
+      .map((call) => call.join(" "))
+      .join("\n");
+    expect(warnOutput).toContain(
+      "[BrowserPool] Failed auth storageState summary",
+    );
     expect(warnOutput).toContain("authIndex=0");
     expect(warnOutput).toContain("importantCookies=SID,__Secure-1PSID");
     expect(warnOutput).not.toContain("secret-sid-0");
@@ -125,7 +164,9 @@ describe("BrowserPool", () => {
     browserPool.browser = createBrowser();
 
     await browserPool.getCurrentSession();
-    await expect(browserPool.markCurrentAccountFailed("Gemini page requires login.")).rejects.toBeInstanceOf(NoAuthAvailableError);
+    await expect(
+      browserPool.markCurrentAccountFailed("Gemini page requires login."),
+    ).rejects.toBeInstanceOf(NoAuthAvailableError);
 
     browserPool.refreshAuthSources();
     expect(browserPool.getRuntimeFailedAuthIndices()).toEqual([]);

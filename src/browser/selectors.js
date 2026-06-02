@@ -20,21 +20,14 @@ module.exports = {
     "[data-response-index]",
     ".response-container",
   ],
-  loginHints: [
-    "text=Sign in",
-    "text=登录",
-    "text=Sign in to continue",
-  ],
+  loginHints: ["text=Sign in", "text=登录", "text=Sign in to continue"],
   quotaHints: [
     "text=limit",
     "text=quota",
     "text=达到上限",
     "text=Too many requests",
   ],
-  stopButton: [
-    "button[aria-label*='Stop']",
-    "button[aria-label*='停止']",
-  ],
+  stopButton: ["button[aria-label*='Stop']", "button[aria-label*='停止']"],
   modelMenuButton: [
     "[data-test-id='bard-mode-menu-button']",
     "button[aria-label*='模式选择器']",

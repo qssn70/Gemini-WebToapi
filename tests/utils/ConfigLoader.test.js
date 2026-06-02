@@ -43,7 +43,8 @@ describe("ConfigLoader", () => {
     process.env.BROWSER_USER_AGENT = "TestAgent/1.0";
     process.env.BROWSER_VIEWPORT = "1920x1080";
     process.env.BROWSER_PROXY = "http://127.0.0.1:8080";
-    process.env.BROWSER_INIT_SCRIPT = "Object.defineProperty(navigator, 'webdriver', { get: () => undefined });";
+    process.env.BROWSER_INIT_SCRIPT =
+      "Object.defineProperty(navigator, 'webdriver', { get: () => undefined });";
     process.env.AUTH_STATE_WAIT_MS = "15000";
     process.env.AUTH_STATE_POLL_MS = "250";
 
@@ -61,6 +62,8 @@ describe("ConfigLoader", () => {
   test("rejects invalid BROWSER_ENGINE", () => {
     process.env.BROWSER_ENGINE = "safari";
 
-    expect(() => loadConfig()).toThrow('Invalid BROWSER_ENGINE "safari". Use "chromium" or "firefox".');
+    expect(() => loadConfig()).toThrow(
+      'Invalid BROWSER_ENGINE "safari". Use "chromium" or "firefox".',
+    );
   });
 });

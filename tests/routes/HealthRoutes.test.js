@@ -14,9 +14,18 @@ describe("HealthRoutes", () => {
       getAvailableIndices: () => [0, 1, 2],
     };
     const browserPool = { browser: {} };
-    const logger = { info: jest.fn(), warn: jest.fn(), debug: jest.fn(), error: jest.fn() };
+    const logger = {
+      info: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      error: jest.fn(),
+    };
 
-    const healthRoutes = createHealthRoutes({ authSource, browserPool, logger });
+    const healthRoutes = createHealthRoutes({
+      authSource,
+      browserPool,
+      logger,
+    });
     app.use("/", healthRoutes);
   });
 

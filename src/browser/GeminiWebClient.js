@@ -19,13 +19,22 @@ class GeminiWebClient {
    * @returns {Promise<object>} { text, finishReason, model, authIndex, raw }
    */
   async generate(request) {
-    const { requestId, model, webModelLabel, prompt, systemInstruction, generationConfig } = request;
+    const {
+      requestId,
+      model,
+      webModelLabel,
+      prompt,
+      systemInstruction,
+      generationConfig,
+    } = request;
 
     let session;
     try {
       session = await this.browserPool.getCurrentSession();
     } catch (err) {
-      this.logger.error(`[WebClient] Failed to get browser session: ${err.message}, requestId=${requestId}`);
+      this.logger.error(
+        `[WebClient] Failed to get browser session: ${err.message}, requestId=${requestId}`,
+      );
       throw err;
     }
 
@@ -50,11 +59,16 @@ class GeminiWebClient {
       };
     } catch (err) {
       this.logger.error(
-        `[WebClient] Page generation failed: ${err.name}: ${err.message}, authIndex=${authIndex}, requestId=${requestId}`
+        `[WebClient] Page generation failed: ${err.name}: ${err.message}, authIndex=${authIndex}, requestId=${requestId}`,
       );
 
       // If the page crashed, mark for rebuild
-      if (err.message && (err.message.includes("crashed") || err.message.includes("closed") || err.message.includes("detached"))) {
+      if (
+        err.message &&
+        (err.message.includes("crashed") ||
+          err.message.includes("closed") ||
+          err.message.includes("detached"))
+      ) {
         throw new PageCrashedError(`Browser page crashed: ${err.message}`);
       }
 

@@ -135,31 +135,31 @@ curl -X POST \
 
 完整配置项请参考 `.env.example`。
 
-| 环境变量 | 默认值 | 说明 |
-|---|---|---|
-| `PORT` | 7870 | 服务端口 |
-| `HOST` | 0.0.0.0 | 监听地址 |
-| `API_KEYS` | 123456 | API 密钥，多个用逗号分隔 |
-| `AUTH_MODE` | file | 认证模式，MVP 仅支持 `file` |
-| `AUTH_DIR` | /app/configs/auth | auth 文件目录 |
-| `ENABLE_AUTH_UPDATE` | false | 是否允许写回 auth 文件 |
-| `GEMINI_WEB_URL` | https://gemini.google.com/app | Gemini Web 地址 |
-| `BROWSER_ENGINE` | chromium | 浏览器运行时引擎（`chromium` 或 `firefox`） |
-| `BROWSER_HEADLESS` | true | 是否无头模式运行浏览器 |
-| `BROWSER_EXECUTABLE_PATH` | （空） | 自定义浏览器路径 |
-| `BROWSER_USER_AGENT` | （空） | 可选浏览器 User-Agent 覆盖 |
-| `BROWSER_VIEWPORT` | （空） | 可选视口尺寸，例如 `1920x1080` |
-| `BROWSER_PROXY` | （空） | 可选 Playwright 代理服务器 |
-| `BROWSER_INIT_SCRIPT` | （空） | 可选页面脚本前置注入脚本 |
-| `AUTH_STATE_WAIT_MS` | 10000 | auth 调试读取页面状态前的等待时间 |
-| `AUTH_STATE_POLL_MS` | 500 | auth 状态检查轮询间隔 |
-| `MAX_CONTEXTS` | 1 | 最大浏览器上下文数 |
-| `MAX_RETRIES` | 2 | 最大重试次数 |
-| `RETRY_DELAY_MS` | 1500 | 重试间隔（毫秒） |
-| `REQUEST_TIMEOUT_MS` | 120000 | 请求超时（毫秒） |
-| `DEFAULT_MODEL` | gemini-3.1-flash-lite | 未传模型时使用的默认模型 |
-| `MODELS` | 内置模型列表 | 可用模型列表，格式：`id:web页面模型标签:显示名`，多个用逗号分隔 |
-| `LOG_LEVEL` | info | 日志级别（error/warn/info/debug） |
+| 环境变量                  | 默认值                        | 说明                                                            |
+| ------------------------- | ----------------------------- | --------------------------------------------------------------- |
+| `PORT`                    | 7870                          | 服务端口                                                        |
+| `HOST`                    | 0.0.0.0                       | 监听地址                                                        |
+| `API_KEYS`                | 123456                        | API 密钥，多个用逗号分隔                                        |
+| `AUTH_MODE`               | file                          | 认证模式，MVP 仅支持 `file`                                     |
+| `AUTH_DIR`                | /app/configs/auth             | auth 文件目录                                                   |
+| `ENABLE_AUTH_UPDATE`      | false                         | 是否允许写回 auth 文件                                          |
+| `GEMINI_WEB_URL`          | https://gemini.google.com/app | Gemini Web 地址                                                 |
+| `BROWSER_ENGINE`          | chromium                      | 浏览器运行时引擎（`chromium` 或 `firefox`）                     |
+| `BROWSER_HEADLESS`        | true                          | 是否无头模式运行浏览器                                          |
+| `BROWSER_EXECUTABLE_PATH` | （空）                        | 自定义浏览器路径                                                |
+| `BROWSER_USER_AGENT`      | （空）                        | 可选浏览器 User-Agent 覆盖                                      |
+| `BROWSER_VIEWPORT`        | （空）                        | 可选视口尺寸，例如 `1920x1080`                                  |
+| `BROWSER_PROXY`           | （空）                        | 可选 Playwright 代理服务器                                      |
+| `BROWSER_INIT_SCRIPT`     | （空）                        | 可选页面脚本前置注入脚本                                        |
+| `AUTH_STATE_WAIT_MS`      | 10000                         | auth 调试读取页面状态前的等待时间                               |
+| `AUTH_STATE_POLL_MS`      | 500                           | auth 状态检查轮询间隔                                           |
+| `MAX_CONTEXTS`            | 1                             | 最大浏览器上下文数                                              |
+| `MAX_RETRIES`             | 2                             | 最大重试次数                                                    |
+| `RETRY_DELAY_MS`          | 1500                          | 重试间隔（毫秒）                                                |
+| `REQUEST_TIMEOUT_MS`      | 120000                        | 请求超时（毫秒）                                                |
+| `DEFAULT_MODEL`           | gemini-3.1-flash-lite         | 未传模型时使用的默认模型                                        |
+| `MODELS`                  | 内置模型列表                  | 可用模型列表，格式：`id:web页面模型标签:显示名`，多个用逗号分隔 |
+| `LOG_LEVEL`               | info                          | 日志级别（error/warn/info/debug）                               |
 
 ### 模型切换
 
@@ -196,13 +196,13 @@ DEFAULT_MODEL=gemini-3.1-flash-lite
 Route → Adapter → RequestHandler → BrowserPool → GeminiPageController
 ```
 
-| 层 | 职责 |
-|---|---|
-| **Route** | HTTP 请求入口，参数校验 |
-| **Adapter** | API 格式转换（Gemini/OpenAI ↔ 内部格式） |
-| **RequestHandler** | 请求编排、重试、账号轮换、错误映射 |
-| **BrowserPool** | 浏览器生命周期、账号上下文管理 |
-| **GeminiPageController** | Gemini Web 页面操作和 DOM 选择器 |
+| 层                       | 职责                                     |
+| ------------------------ | ---------------------------------------- |
+| **Route**                | HTTP 请求入口，参数校验                  |
+| **Adapter**              | API 格式转换（Gemini/OpenAI ↔ 内部格式） |
+| **RequestHandler**       | 请求编排、重试、账号轮换、错误映射       |
+| **BrowserPool**          | 浏览器生命周期、账号上下文管理           |
+| **GeminiPageController** | Gemini Web 页面操作和 DOM 选择器         |
 
 ### 与 AIStudioToAPI 的关系
 

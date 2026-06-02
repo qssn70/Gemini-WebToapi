@@ -3,7 +3,9 @@
  */
 
 class AuthRequiredError extends Error {
-  constructor(message = "Authentication is required but the session is not logged in.") {
+  constructor(
+    message = "Authentication is required but the session is not logged in.",
+  ) {
     super(message);
     this.name = "AuthRequiredError";
     this.httpStatus = 503;
@@ -53,7 +55,9 @@ class PageCrashedError extends Error {
 }
 
 class NoAuthAvailableError extends Error {
-  constructor(message = "No usable authenticated Gemini Web account is available.") {
+  constructor(
+    message = "No usable authenticated Gemini Web account is available.",
+  ) {
     super(message);
     this.name = "NoAuthAvailableError";
     this.httpStatus = 503;

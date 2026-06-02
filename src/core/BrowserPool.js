@@ -30,7 +30,9 @@ class BrowserPool {
    * Start the browser.
    */
   async start() {
-    this.logger.info(`[BrowserPool] Starting ${this.config.browserEngine || "chromium"} browser...`);
+    this.logger.info(
+      `[BrowserPool] Starting ${this.config.browserEngine || "chromium"} browser...`,
+    );
 
     const browserType = createBrowserType(this.config);
     const launchOptions = buildLaunchOptions(this.config);
@@ -70,7 +72,11 @@ class BrowserPool {
    * @returns {Promise<{authIndex: number, context: import('playwright').BrowserContext, page: import('playwright').Page}>}
    */
   async getCurrentSession() {
-    if (this.currentPage && this.currentContext && this.currentAuthIndex !== null) {
+    if (
+      this.currentPage &&
+      this.currentContext &&
+      this.currentAuthIndex !== null
+    ) {
       return {
         authIndex: this.currentAuthIndex,
         context: this.currentContext,
@@ -89,7 +95,9 @@ class BrowserPool {
   async rotate(reason) {
     const indices = this._getUsableRotationIndices();
     if (indices.length === 0) {
-      throw new NoAuthAvailableError("No auth accounts available for rotation.");
+      throw new NoAuthAvailableError(
+        "No auth accounts available for rotation.",
+      );
     }
 
     // Close current session
@@ -97,7 +105,9 @@ class BrowserPool {
 
     // Move to next index
     this.rotationPosition = (this.rotationPosition + 1) % indices.length;
-    this.logger.info(`[BrowserPool] Rotating to position ${this.rotationPosition}, reason: ${reason || "manual"}`);
+    this.logger.info(
+      `[BrowserPool] Rotating to position ${this.rotationPosition}, reason: ${reason || "manual"}`,
+    );
 
     return await this._createSession();
   }
@@ -114,7 +124,7 @@ class BrowserPool {
     const pos = indices.indexOf(authIndex);
     if (pos === -1) {
       throw new NoAuthAvailableError(
-        `Auth index ${authIndex} is not in the rotation list (may be expired, duplicate, or missing).`
+        `Auth index ${authIndex} is not in the rotation list (may be expired, duplicate, or missing).`,
       );
     }
 
@@ -123,7 +133,9 @@ class BrowserPool {
 
     // Set rotation position to the target account
     this.rotationPosition = pos;
-    this.logger.info(`[BrowserPool] Switching to account ${authIndex} (position ${pos})`);
+    this.logger.info(
+      `[BrowserPool] Switching to account ${authIndex} (position ${pos})`,
+    );
 
     return await this._createSession();
   }
@@ -134,7 +146,9 @@ class BrowserPool {
    */
   async markCurrentAccountFailed(reason) {
     const failedAuthIndex = this.currentAuthIndex;
-    this.logger.warn(`[BrowserPool] Account ${failedAuthIndex} failed: ${reason}`);
+    this.logger.warn(
+      `[BrowserPool] Account ${failedAuthIndex} failed: ${reason}`,
+    );
 
     if (failedAuthIndex !== null) {
       this.runtimeFailures.set(failedAuthIndex, {
@@ -144,12 +158,16 @@ class BrowserPool {
 
       const storageState = this.authSource.getAuth(failedAuthIndex);
       if (storageState) {
-        this.logger.warn(`[BrowserPool] Failed auth storageState summary: ${formatAuthSummary(failedAuthIndex, storageState)}`);
+        this.logger.warn(
+          `[BrowserPool] Failed auth storageState summary: ${formatAuthSummary(failedAuthIndex, storageState)}`,
+        );
       }
 
       if (this._getUsableRotationIndices().length === 0) {
         await this._closeCurrentSession();
-        throw new NoAuthAvailableError("No auth accounts available for rotation.");
+        throw new NoAuthAvailableError(
+          "No auth accounts available for rotation.",
+        );
       }
     }
 
@@ -189,7 +207,9 @@ class BrowserPool {
   async _createSession() {
     const indices = this._getUsableRotationIndices();
     if (indices.length === 0) {
-      throw new NoAuthAvailableError("No usable authenticated Gemini Web account is available.");
+      throw new NoAuthAvailableError(
+        "No usable authenticated Gemini Web account is available.",
+      );
     }
 
     // Ensure rotation position is within bounds
@@ -201,11 +221,17 @@ class BrowserPool {
     const storageState = this.authSource.getAuth(authIndex);
 
     if (!storageState) {
-      throw new NoAuthAvailableError(`Auth data not found for index ${authIndex}.`);
+      throw new NoAuthAvailableError(
+        `Auth data not found for index ${authIndex}.`,
+      );
     }
 
-    this.logger.info(`[BrowserPool] Creating context for auth index ${authIndex}...`);
-    this.logger.debug(`[BrowserPool] Auth storageState summary: ${formatAuthSummary(authIndex, storageState)}`);
+    this.logger.info(
+      `[BrowserPool] Creating context for auth index ${authIndex}...`,
+    );
+    this.logger.debug(
+      `[BrowserPool] Auth storageState summary: ${formatAuthSummary(authIndex, storageState)}`,
+    );
 
     const contextOptions = buildContextOptions(this.config, storageState);
     const context = await this.browser.newContext(contextOptions);
@@ -220,7 +246,9 @@ class BrowserPool {
     this.currentContext = context;
     this.currentPage = page;
 
-    this.logger.info(`[BrowserPool] Session created for auth index ${authIndex}.`);
+    this.logger.info(
+      `[BrowserPool] Session created for auth index ${authIndex}.`,
+    );
 
     return { authIndex, context, page };
   }
@@ -270,9 +298,13 @@ class BrowserPool {
       original.cookies = storageState.cookies;
       original.origins = storageState.origins;
       fs.writeFileSync(authPath, JSON.stringify(original, null, 2), "utf-8");
-      this.logger.debug(`[BrowserPool] Wrote back auth file for index ${authIndex}.`);
+      this.logger.debug(
+        `[BrowserPool] Wrote back auth file for index ${authIndex}.`,
+      );
     } catch (err) {
-      this.logger.warn(`[BrowserPool] Failed to write back auth file: ${err.message}`);
+      this.logger.warn(
+        `[BrowserPool] Failed to write back auth file: ${err.message}`,
+      );
     }
   }
 }

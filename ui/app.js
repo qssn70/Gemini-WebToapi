@@ -108,7 +108,9 @@ function setButtonLoading(button, isLoading, loadingText) {
     button.dataset.originalText = button.textContent || "";
   }
   button.disabled = Boolean(isLoading);
-  button.textContent = isLoading ? loadingText || "处理中..." : button.dataset.originalText;
+  button.textContent = isLoading
+    ? loadingText || "处理中..."
+    : button.dataset.originalText;
 }
 
 function setOnline(isOnline) {
@@ -124,9 +126,10 @@ function setOnline(isOnline) {
 function renderDashboard(status) {
   const accounts = status.accounts || {};
   const browser = status.browser || {};
-  const currentAuthText = browser.currentAuthIndex === null || browser.currentAuthIndex === undefined
-    ? "未选中"
-    : `#${browser.currentAuthIndex}`;
+  const currentAuthText =
+    browser.currentAuthIndex === null || browser.currentAuthIndex === undefined
+      ? "未选中"
+      : `#${browser.currentAuthIndex}`;
 
   byId("uptimeText").textContent = formatUptime(status.uptime);
   byId("sUptime").textContent = formatUptime(status.uptime);
@@ -192,7 +195,7 @@ function renderModelSelect(config) {
   select.innerHTML = models
     .map((model) => {
       const label = model.displayName || model.webModelLabel || model.id;
-      const selected = model.id === selectedValue ? ' selected' : '';
+      const selected = model.id === selectedValue ? " selected" : "";
       return `<option value="${escapeHtml(model.id)}"${selected}>${escapeHtml(label)}</option>`;
     })
     .join("");
@@ -218,7 +221,10 @@ function renderConfig(config) {
   ];
 
   table.innerHTML = entries
-    .map(([key, value]) => `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(value)}</td></tr>`)
+    .map(
+      ([key, value]) =>
+        `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(value)}</td></tr>`,
+    )
     .join("");
 
   byId("debugStatus").textContent = config?.enablePageDebug
@@ -237,7 +243,10 @@ function refreshLogs(logs) {
   }
 
   logBox.textContent = items
-    .map((entry) => `[${entry.timestamp || "-"}] ${entry.level || "INFO"} ${entry.message || ""}`)
+    .map(
+      (entry) =>
+        `[${entry.timestamp || "-"}] ${entry.level || "INFO"} ${entry.message || ""}`,
+    )
     .join("\n");
 
   if (byId("autoScroll")?.checked) {
@@ -279,7 +288,7 @@ async function reloadAuth() {
     const result = await apiRequest("/api/auth/reload", { method: "POST" });
     showResult(
       byId("reloadResult"),
-      `已重新加载 Auth。轮换 ${result?.rotationCount ?? 0}，总数 ${result?.totalCount ?? 0}`
+      `已重新加载 Auth。轮换 ${result?.rotationCount ?? 0}，总数 ${result?.totalCount ?? 0}`,
     );
     await refreshStatus(true);
   } catch (err) {
@@ -297,7 +306,10 @@ async function switchAccount(authIndex) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ authIndex: Number(authIndex) }),
     });
-    showResult(byId("reloadResult"), `已切换到账号 #${result.currentAuthIndex}`);
+    showResult(
+      byId("reloadResult"),
+      `已切换到账号 #${result.currentAuthIndex}`,
+    );
     await refreshStatus(true);
     return result;
   } catch (err) {
@@ -336,8 +348,10 @@ async function runTest() {
       body: JSON.stringify(buildTestBody()),
     });
 
-    const text = result?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("\n")
-      || JSON.stringify(result, null, 2);
+    const text =
+      result?.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text || "")
+        .join("\n") || JSON.stringify(result, null, 2);
     showResult(byId("testResult"), text);
     hideError();
     return result;
@@ -357,7 +371,7 @@ async function captureDebugPage() {
     const result = await apiRequest("/api/debug/page", { method: "POST" });
     showResult(
       byId("debugResult"),
-      `HTML: ${result.htmlPath}\n截图: ${result.screenshotPath}\nURL: ${result.url}`
+      `HTML: ${result.htmlPath}\n截图: ${result.screenshotPath}\nURL: ${result.url}`,
     );
     return result;
   } catch (err) {

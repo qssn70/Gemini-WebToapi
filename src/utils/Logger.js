@@ -18,7 +18,9 @@ class Logger {
   _log(level, ...args) {
     // Always buffer regardless of level
     const ts = this._timestamp();
-    const message = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
+    const message = args
+      .map((a) => (typeof a === "string" ? a : JSON.stringify(a)))
+      .join(" ");
     this._buffer.push({ ts, level, message });
     if (this._buffer.length > this.maxBuffer) {
       this._buffer.shift();
@@ -36,10 +38,18 @@ class Logger {
     }
   }
 
-  error(...args) { this._log("error", ...args); }
-  warn(...args) { this._log("warn", ...args); }
-  info(...args) { this._log("info", ...args); }
-  debug(...args) { this._log("debug", ...args); }
+  error(...args) {
+    this._log("error", ...args);
+  }
+  warn(...args) {
+    this._log("warn", ...args);
+  }
+  info(...args) {
+    this._log("info", ...args);
+  }
+  debug(...args) {
+    this._log("debug", ...args);
+  }
 
   /**
    * Get recent log entries.

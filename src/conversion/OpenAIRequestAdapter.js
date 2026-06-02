@@ -38,8 +38,10 @@ function adaptOpenAIRequest(body, requestId) {
   }
 
   // If only system instruction and no user message, use system as prompt
-  const prompt = promptParts.length > 0 ? promptParts.join("\n\n") : systemParts.join("\n");
-  const systemInstruction = promptParts.length > 0 ? systemParts.join("\n") : "";
+  const prompt =
+    promptParts.length > 0 ? promptParts.join("\n\n") : systemParts.join("\n");
+  const systemInstruction =
+    promptParts.length > 0 ? systemParts.join("\n") : "";
 
   return {
     requestId,
@@ -50,7 +52,9 @@ function adaptOpenAIRequest(body, requestId) {
     generationConfig: {
       temperature: body.temperature ?? null,
       maxOutputTokens: body.max_tokens ?? null,
-      thinkingLevel: normalizeThinkingLevel(body.thinking_level ?? body.thinkingLevel ?? body.reasoning_effort),
+      thinkingLevel: normalizeThinkingLevel(
+        body.thinking_level ?? body.thinkingLevel ?? body.reasoning_effort,
+      ),
     },
     metadata: {
       originalModel: body.model || null,
@@ -85,8 +89,10 @@ function extractContentText(content) {
 function normalizeThinkingLevel(value) {
   if (value === undefined || value === null || value === "") return "extended";
   const normalized = String(value).trim().toLowerCase();
-  if (["standard", "标准", "normal", "medium"].includes(normalized)) return "standard";
-  if (["extended", "扩展", "advanced", "deep", "high"].includes(normalized)) return "extended";
+  if (["standard", "标准", "normal", "medium"].includes(normalized))
+    return "standard";
+  if (["extended", "扩展", "advanced", "deep", "high"].includes(normalized))
+    return "extended";
   return null;
 }
 

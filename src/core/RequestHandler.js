@@ -20,7 +20,14 @@ const {
 const sleep = require("../utils/sleep");
 
 class RequestHandler {
-  constructor({ config, logger, authSource, browserPool, geminiWebClient, modelRegistry }) {
+  constructor({
+    config,
+    logger,
+    authSource,
+    browserPool,
+    geminiWebClient,
+    modelRegistry,
+  }) {
     this.config = config;
     this.logger = logger;
     this.authSource = authSource;
@@ -38,16 +45,22 @@ class RequestHandler {
 
     try {
       model = this._resolveModel(req.params.model);
-      this.logger.info(`[RequestHandler] Gemini generateContent, model=${model.id}, requestId=${requestId}`);
+      this.logger.info(
+        `[RequestHandler] Gemini generateContent, model=${model.id}, requestId=${requestId}`,
+      );
 
       const internalRequest = adaptGeminiRequest(req.body, requestId, model.id);
       internalRequest.webModelLabel = model.webModelLabel;
-      this.logger.debug(`[RequestHandler] Internal request: prompt=${internalRequest.prompt.length} chars, systemInstruction=${internalRequest.systemInstruction.length} chars`);
+      this.logger.debug(
+        `[RequestHandler] Internal request: prompt=${internalRequest.prompt.length} chars, systemInstruction=${internalRequest.systemInstruction.length} chars`,
+      );
 
       const result = await this._executeWithRetry(internalRequest, requestId);
       const response = adaptGeminiResponse(result);
 
-      this.logger.info(`[RequestHandler] Gemini request completed, requestId=${requestId}`);
+      this.logger.info(
+        `[RequestHandler] Gemini request completed, requestId=${requestId}`,
+      );
       return res.json(response);
     } catch (err) {
       return this._handleError(err, res, requestId, "gemini");
@@ -60,7 +73,9 @@ class RequestHandler {
   async handleOpenAIChatCompletion(req, res) {
     const requestId = crypto.randomUUID();
 
-    this.logger.info(`[RequestHandler] OpenAI chat completion, requestId=${requestId}`);
+    this.logger.info(
+      `[RequestHandler] OpenAI chat completion, requestId=${requestId}`,
+    );
 
     // Check for streaming (not supported in MVP)
     if (req.body.stream === true) {
@@ -80,12 +95,16 @@ class RequestHandler {
       internalRequest.model = model.id;
       internalRequest.webModelLabel = model.webModelLabel;
       internalRequest.metadata.resolvedModel = model.id;
-      this.logger.debug(`[RequestHandler] Internal request: model=${model.id}, prompt=${internalRequest.prompt.length} chars`);
+      this.logger.debug(
+        `[RequestHandler] Internal request: model=${model.id}, prompt=${internalRequest.prompt.length} chars`,
+      );
 
       const result = await this._executeWithRetry(internalRequest, requestId);
       const response = adaptOpenAIResponse({ ...result, requestId });
 
-      this.logger.info(`[RequestHandler] OpenAI request completed, requestId=${requestId}`);
+      this.logger.info(
+        `[RequestHandler] OpenAI request completed, requestId=${requestId}`,
+      );
       return res.json(response);
     } catch (err) {
       return this._handleError(err, res, requestId, "openai");
@@ -101,11 +120,15 @@ class RequestHandler {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        this.logger.debug(`[RequestHandler] Attempt ${attempt}/${maxAttempts}, requestId=${requestId}`);
+        this.logger.debug(
+          `[RequestHandler] Attempt ${attempt}/${maxAttempts}, requestId=${requestId}`,
+        );
         return await this.geminiWebClient.generate(internalRequest);
       } catch (err) {
         lastError = err;
-        this.logger.warn(`[RequestHandler] Attempt ${attempt} failed: ${err.name}: ${err.message}, requestId=${requestId}`);
+        this.logger.warn(
+          `[RequestHandler] Attempt ${attempt} failed: ${err.name}: ${err.message}, requestId=${requestId}`,
+        );
 
         // Determine if we should retry
         const shouldRetry = this._shouldRetry(err, attempt, maxAttempts);
@@ -117,7 +140,9 @@ class RequestHandler {
         await this._handleRetryAction(err, requestId);
 
         if (attempt < maxAttempts) {
-          this.logger.info(`[RequestHandler] Retrying in ${this.config.retryDelayMs}ms...`);
+          this.logger.info(
+            `[RequestHandler] Retrying in ${this.config.retryDelayMs}ms...`,
+          );
           await sleep(this.config.retryDelayMs);
         }
       }
@@ -159,14 +184,21 @@ class RequestHandler {
       try {
         await this.browserPool.markCurrentAccountFailed(err.message);
       } catch (rotateErr) {
-        this.logger.error(`[RequestHandler] Failed to rotate account: ${rotateErr.message}, requestId=${requestId}`);
+        this.logger.error(
+          `[RequestHandler] Failed to rotate account: ${rotateErr.message}, requestId=${requestId}`,
+        );
       }
-    } else if (err instanceof GeminiPageTimeoutError || err instanceof PageCrashedError) {
+    } else if (
+      err instanceof GeminiPageTimeoutError ||
+      err instanceof PageCrashedError
+    ) {
       try {
         // Close and recreate the session
         await this.browserPool.rotate("page_error");
       } catch (rotateErr) {
-        this.logger.error(`[RequestHandler] Failed to rotate after page error: ${rotateErr.message}, requestId=${requestId}`);
+        this.logger.error(
+          `[RequestHandler] Failed to rotate after page error: ${rotateErr.message}, requestId=${requestId}`,
+        );
       }
     }
   }
@@ -219,7 +251,9 @@ class RequestHandler {
     }
 
     // Unknown error
-    this.logger.error(`[RequestHandler] Unhandled error: ${err.stack || err.message}, requestId=${requestId}`);
+    this.logger.error(
+      `[RequestHandler] Unhandled error: ${err.stack || err.message}, requestId=${requestId}`,
+    );
 
     if (sourceApi === "openai") {
       return res.status(500).json({

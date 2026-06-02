@@ -1,116 +1,274 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gemini-web2api 管理面板</title>
-  <link rel="stylesheet" href="/ui/styles.css">
-</head>
-<body>
-  <header>
-    <div class="inner">
-      <h1><span>Gemini</span>-web2api</h1>
-      <div class="header-status">
-        <span id="statusBadge" class="badge offline">OFFLINE</span>
-        <span id="uptimeText" class="muted"></span>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    <nav class="tabs" role="tablist" aria-label="管理面板标签页">
-      <button id="tab-button-dashboard" class="tab active" role="tab" type="button" data-tab="dashboard" aria-controls="tab-dashboard" aria-selected="true">仪表盘</button>
-      <button id="tab-button-accounts" class="tab" role="tab" type="button" data-tab="accounts" aria-controls="tab-accounts" aria-selected="false">账号管理</button>
-      <button id="tab-button-test" class="tab" role="tab" type="button" data-tab="test" aria-controls="tab-test" aria-selected="false">在线测试</button>
-      <button id="tab-button-logs" class="tab" role="tab" type="button" data-tab="logs" aria-controls="tab-logs" aria-selected="false">日志</button>
-      <button id="tab-button-config" class="tab" role="tab" type="button" data-tab="config" aria-controls="tab-config" aria-selected="false">配置/调试</button>
-    </nav>
-
-    <section id="globalError" class="notice error" hidden></section>
-
-    <section id="tab-dashboard" class="tab-content active" role="tabpanel" aria-labelledby="tab-button-dashboard">
-      <div class="card">
-        <h3>系统状态</h3>
-        <div class="stat-grid">
-          <div class="stat"><div class="label">运行时间</div><div class="value accent" id="sUptime">-</div></div>
-          <div class="stat"><div class="label">浏览器</div><div class="value" id="sBrowser">-</div></div>
-          <div class="stat"><div class="label">当前账号</div><div class="value" id="sCurrentAuth">-</div></div>
-          <div class="stat"><div class="label">可用账号</div><div class="value green" id="sRotation">-</div></div>
-          <div class="stat"><div class="label">总扫描</div><div class="value" id="sTotal">-</div></div>
-          <div class="stat"><div class="label">已过期</div><div class="value red" id="sExpired">-</div></div>
-          <div class="stat"><div class="label">重复</div><div class="value orange" id="sDuplicate">-</div></div>
-          <div class="stat"><div class="label">运行时失败</div><div class="value red" id="sRuntimeFailed">-</div></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini-web2api 管理面板</title>
+    <link rel="stylesheet" href="/ui/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="inner">
+        <h1><span>Gemini</span>-web2api</h1>
+        <div class="header-status">
+          <span id="statusBadge" class="badge offline">OFFLINE</span>
+          <span id="uptimeText" class="muted"></span>
         </div>
       </div>
+    </header>
 
-      <div class="card">
-        <h3>快速操作</h3>
-        <div class="btn-row">
-          <button class="primary" id="reloadAuthBtn" type="button">重新加载 Auth</button>
-          <button id="refreshStatusBtn" type="button">刷新状态</button>
+    <main class="container">
+      <nav class="tabs" role="tablist" aria-label="管理面板标签页">
+        <button
+          id="tab-button-dashboard"
+          class="tab active"
+          role="tab"
+          type="button"
+          data-tab="dashboard"
+          aria-controls="tab-dashboard"
+          aria-selected="true"
+        >
+          仪表盘
+        </button>
+        <button
+          id="tab-button-accounts"
+          class="tab"
+          role="tab"
+          type="button"
+          data-tab="accounts"
+          aria-controls="tab-accounts"
+          aria-selected="false"
+        >
+          账号管理
+        </button>
+        <button
+          id="tab-button-test"
+          class="tab"
+          role="tab"
+          type="button"
+          data-tab="test"
+          aria-controls="tab-test"
+          aria-selected="false"
+        >
+          在线测试
+        </button>
+        <button
+          id="tab-button-logs"
+          class="tab"
+          role="tab"
+          type="button"
+          data-tab="logs"
+          aria-controls="tab-logs"
+          aria-selected="false"
+        >
+          日志
+        </button>
+        <button
+          id="tab-button-config"
+          class="tab"
+          role="tab"
+          type="button"
+          data-tab="config"
+          aria-controls="tab-config"
+          aria-selected="false"
+        >
+          配置/调试
+        </button>
+      </nav>
+
+      <section id="globalError" class="notice error" hidden></section>
+
+      <section
+        id="tab-dashboard"
+        class="tab-content active"
+        role="tabpanel"
+        aria-labelledby="tab-button-dashboard"
+      >
+        <div class="card">
+          <h3>系统状态</h3>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="label">运行时间</div>
+              <div class="value accent" id="sUptime">-</div>
+            </div>
+            <div class="stat">
+              <div class="label">浏览器</div>
+              <div class="value" id="sBrowser">-</div>
+            </div>
+            <div class="stat">
+              <div class="label">当前账号</div>
+              <div class="value" id="sCurrentAuth">-</div>
+            </div>
+            <div class="stat">
+              <div class="label">可用账号</div>
+              <div class="value green" id="sRotation">-</div>
+            </div>
+            <div class="stat">
+              <div class="label">总扫描</div>
+              <div class="value" id="sTotal">-</div>
+            </div>
+            <div class="stat">
+              <div class="label">已过期</div>
+              <div class="value red" id="sExpired">-</div>
+            </div>
+            <div class="stat">
+              <div class="label">重复</div>
+              <div class="value orange" id="sDuplicate">-</div>
+            </div>
+            <div class="stat">
+              <div class="label">运行时失败</div>
+              <div class="value red" id="sRuntimeFailed">-</div>
+            </div>
+          </div>
         </div>
-        <div id="reloadResult" class="result-box"></div>
-      </div>
-    </section>
 
-    <section id="tab-accounts" class="tab-content" role="tabpanel" aria-labelledby="tab-button-accounts">
-      <div class="card">
-        <h3>账号列表</h3>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>#</th><th>账号名</th><th>状态</th><th>轮换</th><th>Canonical</th><th>失败原因</th><th>操作</th></tr>
-            </thead>
-            <tbody id="accountTable"></tbody>
-          </table>
+        <div class="card">
+          <h3>快速操作</h3>
+          <div class="btn-row">
+            <button class="primary" id="reloadAuthBtn" type="button">
+              重新加载 Auth
+            </button>
+            <button id="refreshStatusBtn" type="button">刷新状态</button>
+          </div>
+          <div id="reloadResult" class="result-box"></div>
         </div>
-        <div id="noAccounts" class="empty-state" hidden>暂无 auth 文件。请将 AIStudioToAPI 生成的 auth-N.json 放入 auth/ 目录。</div>
-      </div>
-    </section>
+      </section>
 
-    <section id="tab-test" class="tab-content" role="tabpanel" aria-labelledby="tab-button-test">
-      <div class="card">
-        <h3>测试 generateContent</h3>
-        <div class="form-group"><label for="testModel">模型</label><select id="testModel"></select></div>
-        <div class="form-group"><label for="testPrompt">Prompt</label><textarea id="testPrompt" placeholder="输入测试 prompt...">用一句话介绍一下自己。</textarea></div>
-        <div class="form-group"><label for="testSystem">System Instruction（可选）</label><input id="testSystem" placeholder="系统指令..."></div>
-        <div class="form-grid">
-          <div class="form-group"><label for="testThinkingLevel">思考等级</label><select id="testThinkingLevel"><option value="standard">标准</option><option value="extended">扩展</option></select></div>
-          <div class="form-group"><label for="testTemp">Temperature</label><input id="testTemp" type="number" step="0.1" min="0" max="2" value="0.7"></div>
-          <div class="form-group"><label for="testMaxTokens">Max Output Tokens</label><input id="testMaxTokens" type="number" min="1" max="65536" value="2048"></div>
+      <section
+        id="tab-accounts"
+        class="tab-content"
+        role="tabpanel"
+        aria-labelledby="tab-button-accounts"
+      >
+        <div class="card">
+          <h3>账号列表</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>账号名</th>
+                  <th>状态</th>
+                  <th>轮换</th>
+                  <th>Canonical</th>
+                  <th>失败原因</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="accountTable"></tbody>
+            </table>
+          </div>
+          <div id="noAccounts" class="empty-state" hidden>
+            暂无 auth 文件。请将 AIStudioToAPI 生成的 auth-N.json 放入 auth/
+            目录。
+          </div>
         </div>
-        <div class="btn-row"><button class="primary" id="testBtn" type="button">发送测试</button></div>
-        <div id="testResult" class="result-box"></div>
-      </div>
-    </section>
+      </section>
 
-    <section id="tab-logs" class="tab-content" role="tabpanel" aria-labelledby="tab-button-logs">
-      <div class="card">
-        <h3>实时日志</h3>
-        <div class="btn-row toolbar">
-          <button id="refreshLogsBtn" type="button">刷新</button>
-          <button id="clearLogsBtn" type="button">清空显示</button>
-          <label class="checkbox-label"><input type="checkbox" id="pauseRefresh"> 暂停自动刷新</label>
-          <label class="checkbox-label"><input type="checkbox" id="autoScroll" checked> 自动滚动</label>
+      <section
+        id="tab-test"
+        class="tab-content"
+        role="tabpanel"
+        aria-labelledby="tab-button-test"
+      >
+        <div class="card">
+          <h3>测试 generateContent</h3>
+          <div class="form-group">
+            <label for="testModel">模型</label
+            ><select id="testModel"></select>
+          </div>
+          <div class="form-group">
+            <label for="testPrompt">Prompt</label
+            ><textarea id="testPrompt" placeholder="输入测试 prompt...">
+用一句话介绍一下自己。</textarea
+            >
+          </div>
+          <div class="form-group">
+            <label for="testSystem">System Instruction（可选）</label
+            ><input id="testSystem" placeholder="系统指令..." />
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="testThinkingLevel">思考等级</label
+              ><select id="testThinkingLevel">
+                <option value="standard">标准</option>
+                <option value="extended">扩展</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="testTemp">Temperature</label
+              ><input
+                id="testTemp"
+                type="number"
+                step="0.1"
+                min="0"
+                max="2"
+                value="0.7"
+              />
+            </div>
+            <div class="form-group">
+              <label for="testMaxTokens">Max Output Tokens</label
+              ><input
+                id="testMaxTokens"
+                type="number"
+                min="1"
+                max="65536"
+                value="2048"
+              />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="primary" id="testBtn" type="button">发送测试</button>
+          </div>
+          <div id="testResult" class="result-box"></div>
         </div>
-        <div class="log-box" id="logBox">等待加载...</div>
-      </div>
-    </section>
+      </section>
 
-    <section id="tab-config" class="tab-content" role="tabpanel" aria-labelledby="tab-button-config">
-      <div class="card">
-        <h3>运行配置</h3>
-        <table class="config-table" id="configTable"></table>
-      </div>
-      <div class="card">
-        <h3>页面调试</h3>
-        <p id="debugStatus" class="muted">等待状态加载...</p>
-        <div class="btn-row"><button id="debugPageBtn" type="button">捕获 Gemini 页面调试文件</button></div>
-        <div id="debugResult" class="result-box"></div>
-      </div>
-    </section>
-  </main>
+      <section
+        id="tab-logs"
+        class="tab-content"
+        role="tabpanel"
+        aria-labelledby="tab-button-logs"
+      >
+        <div class="card">
+          <h3>实时日志</h3>
+          <div class="btn-row toolbar">
+            <button id="refreshLogsBtn" type="button">刷新</button>
+            <button id="clearLogsBtn" type="button">清空显示</button>
+            <label class="checkbox-label"
+              ><input type="checkbox" id="pauseRefresh" /> 暂停自动刷新</label
+            >
+            <label class="checkbox-label"
+              ><input type="checkbox" id="autoScroll" checked /> 自动滚动</label
+            >
+          </div>
+          <div class="log-box" id="logBox">等待加载...</div>
+        </div>
+      </section>
 
-  <script src="/ui/app.js"></script>
-</body>
+      <section
+        id="tab-config"
+        class="tab-content"
+        role="tabpanel"
+        aria-labelledby="tab-button-config"
+      >
+        <div class="card">
+          <h3>运行配置</h3>
+          <table class="config-table" id="configTable"></table>
+        </div>
+        <div class="card">
+          <h3>页面调试</h3>
+          <p id="debugStatus" class="muted">等待状态加载...</p>
+          <div class="btn-row">
+            <button id="debugPageBtn" type="button">
+              捕获 Gemini 页面调试文件
+            </button>
+          </div>
+          <div id="debugResult" class="result-box"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/ui/app.js"></script>
+  </body>
 </html>

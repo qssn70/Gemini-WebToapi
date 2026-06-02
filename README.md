@@ -95,24 +95,24 @@ curl -X POST \
 
 See `.env.example` for all available environment variables.
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | 7870 | Server port |
-| `API_KEYS` | 123456 | Comma-separated API keys |
-| `AUTH_DIR` | /app/configs/auth | Path to auth files |
-| `BROWSER_ENGINE` | chromium | Browser runtime engine (`chromium` or `firefox`) |
-| `BROWSER_HEADLESS` | true | Run browser in headless mode |
-| `BROWSER_EXECUTABLE_PATH` | (empty) | Custom browser executable path |
-| `BROWSER_USER_AGENT` | (empty) | Optional browser user agent override |
-| `BROWSER_VIEWPORT` | (empty) | Optional viewport override, for example `1920x1080` |
-| `BROWSER_PROXY` | (empty) | Optional Playwright proxy server |
-| `BROWSER_INIT_SCRIPT` | (empty) | Optional init script evaluated before page scripts |
-| `AUTH_STATE_WAIT_MS` | 10000 | Wait time before reading auth debug page state |
-| `AUTH_STATE_POLL_MS` | 500 | Poll interval for auth state checks |
-| `MAX_RETRIES` | 2 | Maximum retry attempts |
-| `REQUEST_TIMEOUT_MS` | 120000 | Request timeout in ms |
-| `DEFAULT_MODEL` | gemini-3.1-flash-lite | Default model when a request does not specify one |
-| `MODELS` | Built-in model list | Available models, format: `id:web UI label:display name`, comma-separated |
+| Variable                  | Default               | Description                                                               |
+| ------------------------- | --------------------- | ------------------------------------------------------------------------- |
+| `PORT`                    | 7870                  | Server port                                                               |
+| `API_KEYS`                | 123456                | Comma-separated API keys                                                  |
+| `AUTH_DIR`                | /app/configs/auth     | Path to auth files                                                        |
+| `BROWSER_ENGINE`          | chromium              | Browser runtime engine (`chromium` or `firefox`)                          |
+| `BROWSER_HEADLESS`        | true                  | Run browser in headless mode                                              |
+| `BROWSER_EXECUTABLE_PATH` | (empty)               | Custom browser executable path                                            |
+| `BROWSER_USER_AGENT`      | (empty)               | Optional browser user agent override                                      |
+| `BROWSER_VIEWPORT`        | (empty)               | Optional viewport override, for example `1920x1080`                       |
+| `BROWSER_PROXY`           | (empty)               | Optional Playwright proxy server                                          |
+| `BROWSER_INIT_SCRIPT`     | (empty)               | Optional init script evaluated before page scripts                        |
+| `AUTH_STATE_WAIT_MS`      | 10000                 | Wait time before reading auth debug page state                            |
+| `AUTH_STATE_POLL_MS`      | 500                   | Poll interval for auth state checks                                       |
+| `MAX_RETRIES`             | 2                     | Maximum retry attempts                                                    |
+| `REQUEST_TIMEOUT_MS`      | 120000                | Request timeout in ms                                                     |
+| `DEFAULT_MODEL`           | gemini-3.1-flash-lite | Default model when a request does not specify one                         |
+| `MODELS`                  | Built-in model list   | Available models, format: `id:web UI label:display name`, comma-separated |
 
 ## Model Switching
 

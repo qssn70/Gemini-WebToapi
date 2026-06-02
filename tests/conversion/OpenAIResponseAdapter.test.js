@@ -1,4 +1,6 @@
-const { adaptOpenAIResponse } = require("../../src/conversion/OpenAIResponseAdapter");
+const {
+  adaptOpenAIResponse,
+} = require("../../src/conversion/OpenAIResponseAdapter");
 
 describe("OpenAIResponseAdapter", () => {
   test("basic response", () => {

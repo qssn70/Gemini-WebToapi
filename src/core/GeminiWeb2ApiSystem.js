@@ -95,7 +95,9 @@ class GeminiWeb2ApiSystem {
     // Start HTTP server
     await new Promise((resolve) => {
       this.server = this.app.listen(this.config.port, this.config.host, () => {
-        this.logger.info(`[System] Server listening on ${this.config.host}:${this.config.port}`);
+        this.logger.info(
+          `[System] Server listening on ${this.config.host}:${this.config.port}`,
+        );
         resolve();
       });
     });

@@ -20,7 +20,14 @@ function sendUiFile(res, fileName, contentType) {
   return res.sendFile(filePath);
 }
 
-function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistry, config, logger }) {
+function createWebRoutes({
+  authSource,
+  browserPool,
+  requestHandler,
+  modelRegistry,
+  config,
+  logger,
+}) {
   const router = express.Router();
 
   // Serve the Web UI
@@ -43,15 +50,17 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
     const expiredIndices = authSource.expiredIndices || [];
     const duplicateIndices = authSource.duplicateIndices || [];
 
-    const runtimeFailedIndices = typeof browserPool.getRuntimeFailedAuthIndices === "function"
-      ? browserPool.getRuntimeFailedAuthIndices()
-      : [];
+    const runtimeFailedIndices =
+      typeof browserPool.getRuntimeFailedAuthIndices === "function"
+        ? browserPool.getRuntimeFailedAuthIndices()
+        : [];
 
     const accountDetails = availableIndices.map((index) => {
       const auth = authSource.getAuth(index);
-      const runtimeStatus = typeof browserPool.getAccountRuntimeStatus === "function"
-        ? browserPool.getAccountRuntimeStatus(index)
-        : { failed: false, reason: null, failedAt: null };
+      const runtimeStatus =
+        typeof browserPool.getAccountRuntimeStatus === "function"
+          ? browserPool.getAccountRuntimeStatus(index)
+          : { failed: false, reason: null, failedAt: null };
       const isExpired = expiredIndices.includes(index);
       const isDuplicate = duplicateIndices.includes(index);
       const isRotation = rotationIndices.includes(index);
@@ -64,7 +73,8 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
         runtimeFailed: runtimeStatus.failed,
         runtimeFailureReason: runtimeStatus.reason,
         runtimeFailedAt: runtimeStatus.failedAt,
-        isHealthy: isRotation && !isExpired && !isDuplicate && !runtimeStatus.failed,
+        isHealthy:
+          isRotation && !isExpired && !isDuplicate && !runtimeStatus.failed,
         canonicalIndex: authSource.getCanonicalIndex(index) ?? null,
       };
     });
@@ -108,7 +118,11 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
   // Switch to a specific account
   router.post("/api/account/switch", async (req, res) => {
     const authIndex = req.body.authIndex;
-    if (authIndex === undefined || authIndex === null || typeof authIndex !== "number") {
+    if (
+      authIndex === undefined ||
+      authIndex === null ||
+      typeof authIndex !== "number"
+    ) {
       return res.status(400).json({
         error: {
           message: "Missing or invalid 'authIndex' (must be a number).",
@@ -125,7 +139,9 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
         currentAuthIndex: session.authIndex,
       });
     } catch (err) {
-      logger.warn(`[WebUI] Failed to switch to account ${authIndex}: ${err.message}`);
+      logger.warn(
+        `[WebUI] Failed to switch to account ${authIndex}: ${err.message}`,
+      );
       res.status(400).json({
         error: {
           message: err.message,
@@ -155,7 +171,8 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
     if (!config.enablePageDebug) {
       return res.status(404).json({
         error: {
-          message: "Page debug capture is disabled. Set ENABLE_PAGE_DEBUG=true to enable it.",
+          message:
+            "Page debug capture is disabled. Set ENABLE_PAGE_DEBUG=true to enable it.",
           type: "not_enabled",
         },
       });
@@ -173,7 +190,9 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
       await fs.promises.writeFile(htmlPath, html, "utf-8");
       await session.page.screenshot({ path: screenshotPath, fullPage: true });
 
-      logger.info(`[WebUI] Captured Gemini page debug artifacts: ${htmlPath}, ${screenshotPath}`);
+      logger.info(
+        `[WebUI] Captured Gemini page debug artifacts: ${htmlPath}, ${screenshotPath}`,
+      );
       res.json({
         ok: true,
         htmlPath,
@@ -181,7 +200,9 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
         url: session.page.url(),
       });
     } catch (err) {
-      logger.warn(`[WebUI] Failed to capture Gemini page debug artifacts: ${err.message}`);
+      logger.warn(
+        `[WebUI] Failed to capture Gemini page debug artifacts: ${err.message}`,
+      );
       res.status(500).json({
         error: {
           message: err.message,
@@ -194,7 +215,8 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
   // Test generateContent (proxies through requestHandler)
   router.post("/api/test/generate", async (req, res) => {
     try {
-      const model = req.body.model || modelRegistry.defaultModel || config.defaultModel;
+      const model =
+        req.body.model || modelRegistry.defaultModel || config.defaultModel;
       const contents = req.body.contents || [
         { role: "user", parts: [{ text: req.body.prompt || "Hello" }] },
       ];

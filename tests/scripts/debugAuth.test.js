@@ -30,7 +30,19 @@ describe("debugAuth helpers", () => {
   });
 
   test("isLoggedInGeminiState requires no login prompt and an input", () => {
-    expect(isLoggedInGeminiState({ loginRequired: false, inputCount: 1, unsafeBrowserRejected: false })).toBe(true);
-    expect(isLoggedInGeminiState({ loginRequired: true, inputCount: 1, unsafeBrowserRejected: false })).toBe(false);
+    expect(
+      isLoggedInGeminiState({
+        loginRequired: false,
+        inputCount: 1,
+        unsafeBrowserRejected: false,
+      }),
+    ).toBe(true);
+    expect(
+      isLoggedInGeminiState({
+        loginRequired: true,
+        inputCount: 1,
+        unsafeBrowserRejected: false,
+      }),
+    ).toBe(false);
   });
 });

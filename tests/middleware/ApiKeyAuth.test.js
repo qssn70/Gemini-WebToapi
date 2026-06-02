@@ -1,4 +1,6 @@
-const { createApiKeyAuthMiddleware } = require("../../src/middleware/ApiKeyAuth");
+const {
+  createApiKeyAuthMiddleware,
+} = require("../../src/middleware/ApiKeyAuth");
 
 function createMockReqRes(authHeader, queryKey) {
   const req = {

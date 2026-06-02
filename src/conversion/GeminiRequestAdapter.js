@@ -46,8 +46,12 @@ function adaptGeminiRequest(body, requestId, model) {
 
   // Log ignored fields at debug level
   const ignoredFields = [
-    "tools", "toolConfig", "safetySettings", "cachedContent",
-    "generationConfig.responseMimeType", "generationConfig.responseSchema",
+    "tools",
+    "toolConfig",
+    "safetySettings",
+    "cachedContent",
+    "generationConfig.responseMimeType",
+    "generationConfig.responseSchema",
   ];
   for (const field of ignoredFields) {
     const parts = field.split(".");
@@ -71,9 +75,9 @@ function adaptGeminiRequest(body, requestId, model) {
       maxOutputTokens: generationConfig.maxOutputTokens ?? null,
       thinkingLevel: normalizeThinkingLevel(
         generationConfig.thinkingLevel ??
-        generationConfig.thinking_level ??
-        body.thinkingLevel ??
-        body.thinking_level
+          generationConfig.thinking_level ??
+          body.thinkingLevel ??
+          body.thinking_level,
       ),
     },
     metadata: {
@@ -102,8 +106,10 @@ function extractTextParts(parts) {
 function normalizeThinkingLevel(value) {
   if (value === undefined || value === null || value === "") return "extended";
   const normalized = String(value).trim().toLowerCase();
-  if (["standard", "标准", "normal", "medium"].includes(normalized)) return "standard";
-  if (["extended", "扩展", "advanced", "deep", "high"].includes(normalized)) return "extended";
+  if (["standard", "标准", "normal", "medium"].includes(normalized))
+    return "standard";
+  if (["extended", "扩展", "advanced", "deep", "high"].includes(normalized))
+    return "extended";
   return null;
 }
 

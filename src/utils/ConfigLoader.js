@@ -54,35 +54,81 @@ function loadConfig() {
   // Auth
   config.authMode = envStr("AUTH_MODE", DEFAULTS.authMode);
   config.authDir = envStr("AUTH_DIR", DEFAULTS.authDir);
-  config.enableAuthUpdate = envBool("ENABLE_AUTH_UPDATE", DEFAULTS.enableAuthUpdate);
-  config.authSyncIntervalMs = envInt("AUTH_SYNC_INTERVAL_MS", DEFAULTS.authSyncIntervalMs, 1000);
+  config.enableAuthUpdate = envBool(
+    "ENABLE_AUTH_UPDATE",
+    DEFAULTS.enableAuthUpdate,
+  );
+  config.authSyncIntervalMs = envInt(
+    "AUTH_SYNC_INTERVAL_MS",
+    DEFAULTS.authSyncIntervalMs,
+    1000,
+  );
 
   // AIStudioToAPI
-  config.aistudioBaseUrl = envStr("AISTUDIO_BASE_URL", DEFAULTS.aistudioBaseUrl);
-  config.aistudioAuthExportToken = envStr("AISTUDIO_AUTH_EXPORT_TOKEN", DEFAULTS.aistudioAuthExportToken);
+  config.aistudioBaseUrl = envStr(
+    "AISTUDIO_BASE_URL",
+    DEFAULTS.aistudioBaseUrl,
+  );
+  config.aistudioAuthExportToken = envStr(
+    "AISTUDIO_AUTH_EXPORT_TOKEN",
+    DEFAULTS.aistudioAuthExportToken,
+  );
 
   // Browser
   config.geminiWebUrl = envStr("GEMINI_WEB_URL", DEFAULTS.geminiWebUrl);
-  config.browserEngine = envStr("BROWSER_ENGINE", DEFAULTS.browserEngine).toLowerCase();
-  config.browserHeadless = envBool("BROWSER_HEADLESS", DEFAULTS.browserHeadless);
-  config.browserExecutablePath = envStr("BROWSER_EXECUTABLE_PATH", DEFAULTS.browserExecutablePath);
-  config.browserUserAgent = envStr("BROWSER_USER_AGENT", DEFAULTS.browserUserAgent);
+  config.browserEngine = envStr(
+    "BROWSER_ENGINE",
+    DEFAULTS.browserEngine,
+  ).toLowerCase();
+  config.browserHeadless = envBool(
+    "BROWSER_HEADLESS",
+    DEFAULTS.browserHeadless,
+  );
+  config.browserExecutablePath = envStr(
+    "BROWSER_EXECUTABLE_PATH",
+    DEFAULTS.browserExecutablePath,
+  );
+  config.browserUserAgent = envStr(
+    "BROWSER_USER_AGENT",
+    DEFAULTS.browserUserAgent,
+  );
   config.browserViewport = envStr("BROWSER_VIEWPORT", DEFAULTS.browserViewport);
   config.browserProxy = envStr("BROWSER_PROXY", DEFAULTS.browserProxy);
-  config.browserInitScript = envStr("BROWSER_INIT_SCRIPT", DEFAULTS.browserInitScript);
-  config.authStateWaitMs = envInt("AUTH_STATE_WAIT_MS", DEFAULTS.authStateWaitMs, 1000);
-  config.authStatePollMs = envInt("AUTH_STATE_POLL_MS", DEFAULTS.authStatePollMs, 50);
+  config.browserInitScript = envStr(
+    "BROWSER_INIT_SCRIPT",
+    DEFAULTS.browserInitScript,
+  );
+  config.authStateWaitMs = envInt(
+    "AUTH_STATE_WAIT_MS",
+    DEFAULTS.authStateWaitMs,
+    1000,
+  );
+  config.authStatePollMs = envInt(
+    "AUTH_STATE_POLL_MS",
+    DEFAULTS.authStatePollMs,
+    50,
+  );
   config.maxContexts = envInt("MAX_CONTEXTS", DEFAULTS.maxContexts, 1);
-  config.tempConversationMode = envBool("TEMP_CONVERSATION_MODE", DEFAULTS.tempConversationMode);
+  config.tempConversationMode = envBool(
+    "TEMP_CONVERSATION_MODE",
+    DEFAULTS.tempConversationMode,
+  );
 
   // Request
   config.maxRetries = envInt("MAX_RETRIES", DEFAULTS.maxRetries, 0);
   config.retryDelayMs = envInt("RETRY_DELAY_MS", DEFAULTS.retryDelayMs, 0);
-  config.requestTimeoutMs = envInt("REQUEST_TIMEOUT_MS", DEFAULTS.requestTimeoutMs, 1000);
+  config.requestTimeoutMs = envInt(
+    "REQUEST_TIMEOUT_MS",
+    DEFAULTS.requestTimeoutMs,
+    1000,
+  );
 
   // Logging
   config.logLevel = envStr("LOG_LEVEL", DEFAULTS.logLevel);
-  config.enablePageDebug = envBool("ENABLE_PAGE_DEBUG", DEFAULTS.enablePageDebug);
+  config.enablePageDebug = envBool(
+    "ENABLE_PAGE_DEBUG",
+    DEFAULTS.enablePageDebug,
+  );
 
   // Models
   config.models = parseModelsEnv(envStr("MODELS", ""));
@@ -91,13 +137,13 @@ function loadConfig() {
   // Validate auth mode
   if (config.authMode !== "file") {
     throw new Error(
-      `Invalid AUTH_MODE "${config.authMode}". Only "file" is supported in MVP.`
+      `Invalid AUTH_MODE "${config.authMode}". Only "file" is supported in MVP.`,
     );
   }
 
   if (!["chromium", "firefox"].includes(config.browserEngine)) {
     throw new Error(
-      `Invalid BROWSER_ENGINE "${config.browserEngine}". Use "chromium" or "firefox".`
+      `Invalid BROWSER_ENGINE "${config.browserEngine}". Use "chromium" or "firefox".`,
     );
   }
 
@@ -124,7 +170,12 @@ function envInt(key, defaultVal, min, max) {
     return defaultVal;
   }
   const num = Number(raw);
-  if (!Number.isFinite(num) || num < 0 || (min !== undefined && num < min) || (max !== undefined && num > max)) {
+  if (
+    !Number.isFinite(num) ||
+    num < 0 ||
+    (min !== undefined && num < min) ||
+    (max !== undefined && num > max)
+  ) {
     return defaultVal;
   }
   return Math.floor(num);
