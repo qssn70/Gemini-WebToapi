@@ -1,4 +1,6 @@
-const { adaptGeminiResponse } = require("../../src/conversion/GeminiResponseAdapter");
+const {
+  adaptGeminiResponse,
+} = require("../../src/conversion/GeminiResponseAdapter");
 
 describe("GeminiResponseAdapter", () => {
   test("basic response", () => {

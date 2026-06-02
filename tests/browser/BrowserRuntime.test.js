@@ -13,8 +13,12 @@ jest.mock("playwright", () => ({
 
 describe("BrowserRuntime", () => {
   test("selects chromium and firefox browser types", () => {
-    expect(createBrowserType({ browserEngine: "chromium" }).name).toBe("chromium");
-    expect(createBrowserType({ browserEngine: "firefox" }).name).toBe("firefox");
+    expect(createBrowserType({ browserEngine: "chromium" }).name).toBe(
+      "chromium",
+    );
+    expect(createBrowserType({ browserEngine: "firefox" }).name).toBe(
+      "firefox",
+    );
   });
 
   test("builds launch options with executable path and proxy", () => {
@@ -38,11 +42,14 @@ describe("BrowserRuntime", () => {
   });
 
   test("builds context options without leaking storageState", () => {
-    const options = buildContextOptions({
-      browserUserAgent: "TestAgent/1.0",
-      browserViewport: "1920x1080",
-      browserProxy: "http://127.0.0.1:8080",
-    }, { cookies: [], origins: [] });
+    const options = buildContextOptions(
+      {
+        browserUserAgent: "TestAgent/1.0",
+        browserViewport: "1920x1080",
+        browserProxy: "http://127.0.0.1:8080",
+      },
+      { cookies: [], origins: [] },
+    );
 
     expect(options).toEqual({
       storageState: { cookies: [], origins: [] },

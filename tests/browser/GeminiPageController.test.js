@@ -20,7 +20,12 @@ function createPage({ states }) {
       if (selector.includes("Sign in") || selector.includes("登录")) {
         return state === "login_required" ? {} : null;
       }
-      if (selector.includes("limit") || selector.includes("quota") || selector.includes("达到上限") || selector.includes("Too many requests")) {
+      if (
+        selector.includes("limit") ||
+        selector.includes("quota") ||
+        selector.includes("达到上限") ||
+        selector.includes("Too many requests")
+      ) {
         return state === "quota_exceeded" ? {} : null;
       }
       if (selector.includes("contenteditable") || selector === "textarea") {
@@ -39,7 +44,9 @@ function createPage({ states }) {
 
 describe("GeminiPageController", () => {
   test("waits for a restored auth session before treating the page as logged out", async () => {
-    const page = createPage({ states: ["login_required", "login_required", "ready"] });
+    const page = createPage({
+      states: ["login_required", "login_required", "ready"],
+    });
     const logger = createLogger();
     const controller = new GeminiPageController({
       logger,
@@ -52,17 +59,22 @@ describe("GeminiPageController", () => {
       },
     });
 
-    const originalDiagnosePageState = controller._diagnosePageState.bind(controller);
-    jest.spyOn(controller, "_diagnosePageState").mockImplementation(async (...args) => {
-      const diagnostics = await originalDiagnosePageState(...args);
-      page.advanceState();
-      return diagnostics;
-    });
+    const originalDiagnosePageState =
+      controller._diagnosePageState.bind(controller);
+    jest
+      .spyOn(controller, "_diagnosePageState")
+      .mockImplementation(async (...args) => {
+        const diagnostics = await originalDiagnosePageState(...args);
+        page.advanceState();
+        return diagnostics;
+      });
 
     await expect(controller.ensureReady(page)).resolves.toBeUndefined();
     expect(controller._diagnosePageState).toHaveBeenCalledTimes(3);
 
-    const logOutput = logger.debug.mock.calls.map((call) => call.join(" ")).join("\n");
+    const logOutput = logger.debug.mock.calls
+      .map((call) => call.join(" "))
+      .join("\n");
     expect(logOutput).toContain("[PageController] Auth state check");
     expect(logOutput).toContain("state=login_required");
     expect(logOutput).toContain("state=ready");
@@ -86,9 +98,13 @@ describe("GeminiPageController", () => {
       },
     });
 
-    await expect(controller.ensureReady(page)).rejects.toThrow("Gemini page requires login.");
+    await expect(controller.ensureReady(page)).rejects.toThrow(
+      "Gemini page requires login.",
+    );
 
-    const warnOutput = logger.warn.mock.calls.map((call) => call.join(" ")).join("\n");
+    const warnOutput = logger.warn.mock.calls
+      .map((call) => call.join(" "))
+      .join("\n");
     expect(warnOutput).toContain("[PageController] Auth state failure");
     expect(warnOutput).toContain("state=login_required");
     expect(warnOutput).toContain("url=https://gemini.google.com/app");
@@ -107,7 +123,8 @@ describe("GeminiPageController", () => {
       })),
     };
 
-    jest.spyOn(controller, "_findElement")
+    jest
+      .spyOn(controller, "_findElement")
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(thinkingMenu);
 
@@ -117,6 +134,8 @@ describe("GeminiPageController", () => {
     expect(thinkingMenu.click).toHaveBeenCalledTimes(1);
     expect(page.getByText).toHaveBeenCalledWith("扩展", { exact: false });
     expect(option.click).toHaveBeenCalledWith({ timeout: 5000 });
-    expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining("Selected thinking level extended"));
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.stringContaining("Selected thinking level extended"),
+    );
   });
 });

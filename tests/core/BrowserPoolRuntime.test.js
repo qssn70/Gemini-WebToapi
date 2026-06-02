@@ -3,7 +3,10 @@ jest.mock("../../src/browser/BrowserRuntime", () => ({
     storageState,
     viewport: { width: 1920, height: 1080 },
   })),
-  buildLaunchOptions: jest.fn(() => ({ headless: true, executablePath: "/browser" })),
+  buildLaunchOptions: jest.fn(() => ({
+    headless: true,
+    executablePath: "/browser",
+  })),
   createBrowserType: jest.fn(() => ({
     launch: jest.fn(async () => ({
       newContext: jest.fn(async () => ({
@@ -30,7 +33,9 @@ function createLogger() {
 }
 
 function createAuthSource(storageByIndex) {
-  const indices = Object.keys(storageByIndex).map(Number).sort((a, b) => a - b);
+  const indices = Object.keys(storageByIndex)
+    .map(Number)
+    .sort((a, b) => a - b);
   return {
     reload: jest.fn(),
     getRotationIndices: jest.fn(() => [...indices]),
@@ -43,7 +48,12 @@ function makeStorage(index, overrides = {}) {
     accountName: `user${index}@example.com`,
     expired: false,
     cookies: [
-      { name: "SID", value: `secret-sid-${index}`, domain: ".google.com", path: "/" },
+      {
+        name: "SID",
+        value: `secret-sid-${index}`,
+        domain: ".google.com",
+        path: "/",
+      },
     ],
     origins: [{ origin: "https://gemini.google.com", localStorage: [] }],
     ...overrides,
@@ -66,6 +76,11 @@ test("starts configured browser type and creates context with runtime options", 
 
   expect(BrowserRuntime.createBrowserType).toHaveBeenCalledWith(config);
   expect(BrowserRuntime.buildLaunchOptions).toHaveBeenCalledWith(config);
-  expect(BrowserRuntime.buildContextOptions).toHaveBeenCalledWith(config, expect.objectContaining({ accountName: "user0@example.com" }));
-  expect(browserPool.browser.newContext).toHaveBeenCalledWith(expect.objectContaining({ viewport: { width: 1920, height: 1080 } }));
+  expect(BrowserRuntime.buildContextOptions).toHaveBeenCalledWith(
+    config,
+    expect.objectContaining({ accountName: "user0@example.com" }),
+  );
+  expect(browserPool.browser.newContext).toHaveBeenCalledWith(
+    expect.objectContaining({ viewport: { width: 1920, height: 1080 } }),
+  );
 });

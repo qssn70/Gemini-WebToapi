@@ -1,4 +1,6 @@
-const { adaptGeminiRequest } = require("../../src/conversion/GeminiRequestAdapter");
+const {
+  adaptGeminiRequest,
+} = require("../../src/conversion/GeminiRequestAdapter");
 
 describe("GeminiRequestAdapter", () => {
   test("single user message", () => {
@@ -39,14 +41,20 @@ describe("GeminiRequestAdapter", () => {
 
   test("no text content: throws ValidationError", () => {
     const body = {
-      contents: [{ role: "user", parts: [{ inlineData: { mimeType: "image/png" } }] }],
+      contents: [
+        { role: "user", parts: [{ inlineData: { mimeType: "image/png" } }] },
+      ],
     };
-    expect(() => adaptGeminiRequest(body, "req-4", "gemini-3.1-flash-lite")).toThrow("No text content");
+    expect(() =>
+      adaptGeminiRequest(body, "req-4", "gemini-3.1-flash-lite"),
+    ).toThrow("No text content");
   });
 
   test("empty contents: throws ValidationError", () => {
     const body = { contents: [] };
-    expect(() => adaptGeminiRequest(body, "req-5", "gemini-3.1-flash-lite")).toThrow("No text content");
+    expect(() =>
+      adaptGeminiRequest(body, "req-5", "gemini-3.1-flash-lite"),
+    ).toThrow("No text content");
   });
 
   test("generationConfig forwarded", () => {
@@ -72,7 +80,11 @@ describe("GeminiRequestAdapter", () => {
     const body = {
       contents: [{ role: "user", parts: [{ text: "Test" }] }],
     };
-    const result = adaptGeminiRequest(body, "req-default-thinking", "gemini-3.1-pro-preview");
+    const result = adaptGeminiRequest(
+      body,
+      "req-default-thinking",
+      "gemini-3.1-pro-preview",
+    );
     expect(result.generationConfig.thinkingLevel).toBe("extended");
   });
 
@@ -81,7 +93,11 @@ describe("GeminiRequestAdapter", () => {
       contents: [{ role: "user", parts: [{ text: "Test" }] }],
       generationConfig: { thinkingLevel: "standard" },
     };
-    const result = adaptGeminiRequest(body, "req-standard-thinking", "gemini-3.1-pro-preview");
+    const result = adaptGeminiRequest(
+      body,
+      "req-standard-thinking",
+      "gemini-3.1-pro-preview",
+    );
     expect(result.generationConfig.thinkingLevel).toBe("standard");
   });
 });

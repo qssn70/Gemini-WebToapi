@@ -29,11 +29,12 @@ class GeminiPageController {
   async ensureReady(page) {
     const currentUrl = page.url();
     const needsNavigation =
-      this.config.tempConversationMode || !currentUrl.includes("gemini.google.com");
+      this.config.tempConversationMode ||
+      !currentUrl.includes("gemini.google.com");
 
     if (needsNavigation) {
       this.logger.debug(
-        `[PageController] Navigating to Gemini Web (tempMode=${this.config.tempConversationMode})...`
+        `[PageController] Navigating to Gemini Web (tempMode=${this.config.tempConversationMode})...`,
       );
       await page.goto(this.config.geminiWebUrl, {
         waitUntil: "domcontentloaded",
@@ -61,10 +62,24 @@ class GeminiPageController {
    * @param {string} [params.requestId]
    * @returns {Promise<{text: string, finishReason: string, raw: object}>}
    */
-  async generate(page, { prompt, systemInstruction, model, webModelLabel, generationConfig, requestId }) {
+  async generate(
+    page,
+    {
+      prompt,
+      systemInstruction,
+      model,
+      webModelLabel,
+      generationConfig,
+      requestId,
+    },
+  ) {
     await this.ensureReady(page);
     await this._selectModel(page, webModelLabel, requestId);
-    await this._selectThinkingLevel(page, generationConfig && generationConfig.thinkingLevel, requestId);
+    await this._selectThinkingLevel(
+      page,
+      generationConfig && generationConfig.thinkingLevel,
+      requestId,
+    );
 
     // Build final prompt with system instruction
     let finalPrompt = prompt;
@@ -72,12 +87,16 @@ class GeminiPageController {
       finalPrompt = `[System instruction]\n${systemInstruction}\n\n[User]\n${prompt}`;
     }
 
-    this.logger.debug(`[PageController] Sending prompt (${finalPrompt.length} chars), requestId=${requestId}`);
+    this.logger.debug(
+      `[PageController] Sending prompt (${finalPrompt.length} chars), requestId=${requestId}`,
+    );
 
     // Find and clear input
     const inputEl = await this._findElement(page, selectors.input, 5000);
     if (!inputEl) {
-      throw new GeminiPageTimeoutError("Could not find input element on Gemini page.");
+      throw new GeminiPageTimeoutError(
+        "Could not find input element on Gemini page.",
+      );
     }
 
     await inputEl.click();
@@ -126,9 +145,15 @@ class GeminiPageController {
     if (!label) return;
 
     try {
-      const menuButton = await this._findElement(page, selectors.modelMenuButton, 3000);
+      const menuButton = await this._findElement(
+        page,
+        selectors.modelMenuButton,
+        3000,
+      );
       if (!menuButton) {
-        this.logger.warn(`[PageController] Model menu not found; continuing with current Gemini Web model, requested=${label}, requestId=${requestId}`);
+        this.logger.warn(
+          `[PageController] Model menu not found; continuing with current Gemini Web model, requested=${label}, requestId=${requestId}`,
+        );
         return;
       }
 
@@ -139,9 +164,13 @@ class GeminiPageController {
       await option.click({ timeout: 5000 });
       await sleep(500);
 
-      this.logger.debug(`[PageController] Selected Gemini Web model ${label}, requestId=${requestId}`);
+      this.logger.debug(
+        `[PageController] Selected Gemini Web model ${label}, requestId=${requestId}`,
+      );
     } catch (err) {
-      this.logger.warn(`[PageController] Failed to select Gemini Web model ${label}: ${err.message}, requestId=${requestId}`);
+      this.logger.warn(
+        `[PageController] Failed to select Gemini Web model ${label}: ${err.message}, requestId=${requestId}`,
+      );
     }
   }
 
@@ -152,28 +181,46 @@ class GeminiPageController {
     if (!thinkingLevel) return;
 
     const label = thinkingLevel === "extended" ? "扩展" : "标准";
-    const fallbackLabel = thinkingLevel === "extended" ? "Extended" : "Standard";
+    const fallbackLabel =
+      thinkingLevel === "extended" ? "Extended" : "Standard";
 
     try {
-      let menuButton = await this._findElement(page, selectors.thinkingMenuButton, 3000);
+      let menuButton = await this._findElement(
+        page,
+        selectors.thinkingMenuButton,
+        3000,
+      );
       if (!menuButton) {
-        menuButton = await this._findElement(page, selectors.modelMenuButton, 3000);
+        menuButton = await this._findElement(
+          page,
+          selectors.modelMenuButton,
+          3000,
+        );
       }
       if (!menuButton) {
-        this.logger.warn(`[PageController] Thinking menu not found; continuing with current thinking level, requested=${thinkingLevel}, requestId=${requestId}`);
+        this.logger.warn(
+          `[PageController] Thinking menu not found; continuing with current thinking level, requested=${thinkingLevel}, requestId=${requestId}`,
+        );
         return;
       }
 
       await menuButton.click();
       await sleep(300);
 
-      const option = page.getByText(label, { exact: false }).or(page.getByText(fallbackLabel, { exact: false })).first();
+      const option = page
+        .getByText(label, { exact: false })
+        .or(page.getByText(fallbackLabel, { exact: false }))
+        .first();
       await option.click({ timeout: 5000 });
       await sleep(500);
 
-      this.logger.debug(`[PageController] Selected thinking level ${thinkingLevel}, requestId=${requestId}`);
+      this.logger.debug(
+        `[PageController] Selected thinking level ${thinkingLevel}, requestId=${requestId}`,
+      );
     } catch (err) {
-      this.logger.warn(`[PageController] Failed to select thinking level ${thinkingLevel}: ${err.message}, requestId=${requestId}`);
+      this.logger.warn(
+        `[PageController] Failed to select thinking level ${thinkingLevel}: ${err.message}, requestId=${requestId}`,
+      );
     }
   }
 
@@ -218,7 +265,9 @@ class GeminiPageController {
       const diagnostics = await this._diagnosePageState(page);
       lastDiagnostics = diagnostics;
       lastState = diagnostics.state;
-      this.logger.debug(`[PageController] Auth state check: ${formatPageDiagnostics(diagnostics)}`);
+      this.logger.debug(
+        `[PageController] Auth state check: ${formatPageDiagnostics(diagnostics)}`,
+      );
       if (lastState === "ready") {
         return;
       }
@@ -230,13 +279,17 @@ class GeminiPageController {
 
     if (lastState === "login_required") {
       if (lastDiagnostics) {
-        this.logger.warn(`[PageController] Auth state failure: ${formatPageDiagnostics(lastDiagnostics)}`);
+        this.logger.warn(
+          `[PageController] Auth state failure: ${formatPageDiagnostics(lastDiagnostics)}`,
+        );
       }
       throw new AuthRequiredError("Gemini page requires login.");
     }
     if (lastState === "quota_exceeded") {
       if (lastDiagnostics) {
-        this.logger.warn(`[PageController] Auth state failure: ${formatPageDiagnostics(lastDiagnostics)}`);
+        this.logger.warn(
+          `[PageController] Auth state failure: ${formatPageDiagnostics(lastDiagnostics)}`,
+        );
       }
       throw new QuotaExceededError("Gemini page shows quota exceeded.");
     }
@@ -309,7 +362,9 @@ class GeminiPageController {
   async _findElement(page, selectorList, timeout) {
     for (const selector of selectorList) {
       try {
-        const el = await page.waitForSelector(selector, { timeout: timeout / selectorList.length });
+        const el = await page.waitForSelector(selector, {
+          timeout: timeout / selectorList.length,
+        });
         if (el) return el;
       } catch {
         // Try next selector
@@ -346,7 +401,9 @@ class GeminiPageController {
       if (currentText && currentText === lastText) {
         stableCount++;
         if (stableCount >= stableThreshold) {
-          this.logger.debug(`[PageController] Response stabilized after ${Date.now() - startTime}ms, requestId=${requestId}`);
+          this.logger.debug(
+            `[PageController] Response stabilized after ${Date.now() - startTime}ms, requestId=${requestId}`,
+          );
           return currentText;
         }
       } else {
@@ -355,7 +412,9 @@ class GeminiPageController {
       }
     }
 
-    throw new GeminiPageTimeoutError(`Response timed out after ${maxWaitMs}ms, requestId=${requestId}`);
+    throw new GeminiPageTimeoutError(
+      `Response timed out after ${maxWaitMs}ms, requestId=${requestId}`,
+    );
   }
 
   /**

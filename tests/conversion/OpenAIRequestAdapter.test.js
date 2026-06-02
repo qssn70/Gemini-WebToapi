@@ -1,4 +1,6 @@
-const { adaptOpenAIRequest } = require("../../src/conversion/OpenAIRequestAdapter");
+const {
+  adaptOpenAIRequest,
+} = require("../../src/conversion/OpenAIRequestAdapter");
 
 describe("OpenAIRequestAdapter", () => {
   test("single user message", () => {
@@ -50,7 +52,10 @@ describe("OpenAIRequestAdapter", () => {
           content: [
             { type: "text", text: "Part 1" },
             { type: "text", text: "Part 2" },
-            { type: "image_url", image_url: { url: "http://example.com/img.png" } },
+            {
+              type: "image_url",
+              image_url: { url: "http://example.com/img.png" },
+            },
           ],
         },
       ],
@@ -64,7 +69,10 @@ describe("OpenAIRequestAdapter", () => {
     const body = {
       model: "gemini-3.1-flash-lite",
       messages: [
-        { role: "user", content: [{ type: "image_url", image_url: { url: "x" } }] },
+        {
+          role: "user",
+          content: [{ type: "image_url", image_url: { url: "x" } }],
+        },
       ],
     };
     expect(() => adaptOpenAIRequest(body, "req-5")).toThrow("No text content");

@@ -111,11 +111,13 @@ volumes:
 This prevents conflicts with AIStudioToAPI's auth file management. To enable auth write-back from Gemini-web2api:
 
 1. Change the mount to read-write:
+
 ```yaml
 - ./auth:/app/configs/auth
 ```
 
 2. Set the environment variable:
+
 ```yaml
 - ENABLE_AUTH_UPDATE=true
 ```

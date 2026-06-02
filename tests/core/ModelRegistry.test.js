@@ -1,4 +1,7 @@
-const { createModelRegistry, parseModelsEnv } = require("../../src/core/ModelRegistry");
+const {
+  createModelRegistry,
+  parseModelsEnv,
+} = require("../../src/core/ModelRegistry");
 
 describe("ModelRegistry", () => {
   test("lists default Gemini and OpenAI models", () => {
@@ -9,21 +12,33 @@ describe("ModelRegistry", () => {
       "models/gemini-3.5-flash",
       "models/gemini-3.1-pro-preview",
     ]);
-    expect(registry.listOpenAIModels().data.map((m) => m.id)).toContain("gemini-3.5-flash");
+    expect(registry.listOpenAIModels().data.map((m) => m.id)).toContain(
+      "gemini-3.5-flash",
+    );
   });
 
   test("resolves model aliases", () => {
     const registry = createModelRegistry();
 
-    expect(registry.resolve("models/gemini-3.5-flash").id).toBe("gemini-3.5-flash");
-    expect(registry.resolve("gemini-3.1-flash-lite").id).toBe("gemini-3.1-flash-lite");
-    expect(registry.resolve("gemini-3.1-pro-preview").id).toBe("gemini-3.1-pro-preview");
-    expect(registry.resolve("gemini-3.1-pro").id).toBe("gemini-3.1-pro-preview");
+    expect(registry.resolve("models/gemini-3.5-flash").id).toBe(
+      "gemini-3.5-flash",
+    );
+    expect(registry.resolve("gemini-3.1-flash-lite").id).toBe(
+      "gemini-3.1-flash-lite",
+    );
+    expect(registry.resolve("gemini-3.1-pro-preview").id).toBe(
+      "gemini-3.1-pro-preview",
+    );
+    expect(registry.resolve("gemini-3.1-pro").id).toBe(
+      "gemini-3.1-pro-preview",
+    );
     expect(registry.resolve("missing-model")).toBeNull();
   });
 
   test("parses MODELS env", () => {
-    const models = parseModelsEnv("custom-web:Custom Label:Custom Display,other-web::Other Display");
+    const models = parseModelsEnv(
+      "custom-web:Custom Label:Custom Display,other-web::Other Display",
+    );
 
     expect(models).toEqual([
       expect.objectContaining({

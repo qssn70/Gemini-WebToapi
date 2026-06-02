@@ -26,10 +26,20 @@ function parseArgs(argv) {
   return result;
 }
 
-function summarizePageDiagnostics({ url, title, bodyText, signInCount, inputCount }) {
+function summarizePageDiagnostics({
+  url,
+  title,
+  bodyText,
+  signInCount,
+  inputCount,
+}) {
   const normalized = String(bodyText || "").replace(/\s+/g, " ");
-  const unsafeBrowserRejected = /browser or app may not be secure|Couldn.t sign you in/i.test(normalized);
-  const loginRequired = signInCount > 0 || /accounts\.google\.com|ServiceLogin|signin/i.test(url || "") || unsafeBrowserRejected;
+  const unsafeBrowserRejected =
+    /browser or app may not be secure|Couldn.t sign you in/i.test(normalized);
+  const loginRequired =
+    signInCount > 0 ||
+    /accounts\.google\.com|ServiceLogin|signin/i.test(url || "") ||
+    unsafeBrowserRejected;
   return {
     inputCount,
     loginRequired,
@@ -41,7 +51,11 @@ function summarizePageDiagnostics({ url, title, bodyText, signInCount, inputCoun
 }
 
 function isLoggedInGeminiState(summary) {
-  return !summary.loginRequired && !summary.unsafeBrowserRejected && summary.inputCount > 0;
+  return (
+    !summary.loginRequired &&
+    !summary.unsafeBrowserRejected &&
+    summary.inputCount > 0
+  );
 }
 
 async function run() {
@@ -55,13 +69,17 @@ async function run() {
 
   const storageState = JSON.parse(fs.readFileSync(authPath, "utf-8"));
   console.log(`[debugAuth] ${formatAuthSummary(args.authIndex, storageState)}`);
-  console.log(`[debugAuth] browserEngine=${config.browserEngine} executablePath=${config.browserExecutablePath || "(default)"} proxy=${config.browserProxy || "(none)"}`);
+  console.log(
+    `[debugAuth] browserEngine=${config.browserEngine} executablePath=${config.browserExecutablePath || "(default)"} proxy=${config.browserProxy || "(none)"}`,
+  );
 
   const browserType = createBrowserType(config);
   const browser = await browserType.launch(buildLaunchOptions(config));
 
   try {
-    const context = await browser.newContext(buildContextOptions(config, storageState));
+    const context = await browser.newContext(
+      buildContextOptions(config, storageState),
+    );
     if (config.browserInitScript) {
       await context.addInitScript(config.browserInitScript);
     }
@@ -70,18 +88,39 @@ async function run() {
     const failedResponses = [];
     page.on("response", (response) => {
       if (response.status() >= 400) {
-        failedResponses.push(`${response.status()} ${response.url().slice(0, 160)}`);
+        failedResponses.push(
+          `${response.status()} ${response.url().slice(0, 160)}`,
+        );
       }
     });
 
-    await page.goto(config.geminiWebUrl, { waitUntil: "domcontentloaded", timeout: 90000 });
+    await page.goto(config.geminiWebUrl, {
+      waitUntil: "domcontentloaded",
+      timeout: 90000,
+    });
     await page.waitForTimeout(config.authStateWaitMs);
 
-    const bodyText = await page.locator("body").innerText({ timeout: 5000 }).catch((err) => `BODY_READ_ERROR ${err.message}`);
+    const bodyText = await page
+      .locator("body")
+      .innerText({ timeout: 5000 })
+      .catch((err) => `BODY_READ_ERROR ${err.message}`);
     const diagnostics = summarizePageDiagnostics({
       bodyText,
-      inputCount: await page.locator("rich-textarea div[contenteditable='true'], div[contenteditable='true'], textarea").count().catch(() => 0),
-      signInCount: (await page.locator("text=Sign in").count().catch(() => 0)) + (await page.locator("text=登录").count().catch(() => 0)),
+      inputCount: await page
+        .locator(
+          "rich-textarea div[contenteditable='true'], div[contenteditable='true'], textarea",
+        )
+        .count()
+        .catch(() => 0),
+      signInCount:
+        (await page
+          .locator("text=Sign in")
+          .count()
+          .catch(() => 0)) +
+        (await page
+          .locator("text=登录")
+          .count()
+          .catch(() => 0)),
       title: await page.title().catch(() => ""),
       url: page.url(),
     });
@@ -89,14 +128,22 @@ async function run() {
     console.log(`[debugAuth] diagnostics=${JSON.stringify(diagnostics)}`);
     console.log(`[debugAuth] loggedIn=${isLoggedInGeminiState(diagnostics)}`);
     if (failedResponses.length > 0) {
-      console.log(`[debugAuth] failedResponses=${JSON.stringify(failedResponses.slice(0, 20))}`);
+      console.log(
+        `[debugAuth] failedResponses=${JSON.stringify(failedResponses.slice(0, 20))}`,
+      );
     }
 
     if (args.saveArtifacts) {
       await fs.promises.mkdir("debug", { recursive: true });
       const prefix = `debug/auth-${args.authIndex}-${config.browserEngine}`;
-      await page.screenshot({ path: `${prefix}.png`, fullPage: true }).catch(() => {});
-      await fs.promises.writeFile(`${prefix}.html`, await page.content().catch((err) => err.message), "utf-8");
+      await page
+        .screenshot({ path: `${prefix}.png`, fullPage: true })
+        .catch(() => {});
+      await fs.promises.writeFile(
+        `${prefix}.html`,
+        await page.content().catch((err) => err.message),
+        "utf-8",
+      );
       console.log(`[debugAuth] artifacts=${prefix}.png ${prefix}.html`);
     }
 
