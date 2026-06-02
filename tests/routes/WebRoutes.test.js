@@ -221,20 +221,28 @@ describe("WebRoutes", () => {
     expect(res.text).toContain("window.WebUi");
   });
 
-  test("POST /api/account/switch rejects missing authIndex", async () => {
-    const app = createApp({
-      browserPool: {
-        browser: {},
-        currentAuthIndex: null,
-        switchToAccount: jest.fn(),
-      },
-    });
+  test.each([
+    ["missing", {}],
+    ["NaN", { authIndex: NaN }],
+    ["fractional", { authIndex: 1.5 }],
+    ["negative", { authIndex: -1 }],
+  ])(
+    "POST /api/account/switch rejects %s authIndex",
+    async (_caseName, body) => {
+      const app = createApp({
+        browserPool: {
+          browser: {},
+          currentAuthIndex: null,
+          switchToAccount: jest.fn(),
+        },
+      });
 
-    const res = await request(app).post("/api/account/switch").send({});
+      const res = await request(app).post("/api/account/switch").send(body);
 
-    expect(res.status).toBe(400);
-    expect(res.body.error.message).toContain("authIndex");
-  });
+      expect(res.status).toBe(400);
+      expect(res.body.error.message).toContain("authIndex");
+    },
+  );
 
   test("POST /api/account/switch returns selected account", async () => {
     const browserPool = {

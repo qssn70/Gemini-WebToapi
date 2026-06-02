@@ -121,11 +121,14 @@ function createWebRoutes({
     if (
       authIndex === undefined ||
       authIndex === null ||
-      typeof authIndex !== "number"
+      typeof authIndex !== "number" ||
+      !Number.isInteger(authIndex) ||
+      authIndex < 0
     ) {
       return res.status(400).json({
         error: {
-          message: "Missing or invalid 'authIndex' (must be a number).",
+          message:
+            "Missing or invalid 'authIndex' (must be a non-negative integer).",
           type: "invalid_request",
         },
       });

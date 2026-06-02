@@ -180,7 +180,7 @@ DEFAULT_MODEL=gemini-3.1-flash-lite
 
 ## Web 管理面板
 
-访问 `http://localhost:7870/ui` 打开管理面板（无需 API Key）。
+访问 `http://localhost:7870/ui` 打开管理面板（无需 API Key）。该面板面向本地或可信网络运维使用；不要将其直接暴露到公网，因为页面会显示账号运行状态、失败原因、调试文件路径等诊断信息。
 
 功能包括：
 
