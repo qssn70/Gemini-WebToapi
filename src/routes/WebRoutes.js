@@ -194,7 +194,7 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
   // Test generateContent (proxies through requestHandler)
   router.post("/api/test/generate", async (req, res) => {
     try {
-      const model = req.body.model || config.defaultModel;
+      const model = req.body.model || modelRegistry.defaultModel || config.defaultModel;
       const contents = req.body.contents || [
         { role: "user", parts: [{ text: req.body.prompt || "Hello" }] },
       ];

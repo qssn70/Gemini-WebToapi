@@ -246,6 +246,30 @@ describe("WebRoutes", () => {
     });
   });
 
+  test("POST /api/test/generate uses registry default model when request omits model", async () => {
+    const requestHandler = {
+      handleGeminiGenerate: jest.fn(async (req, res) => res.json({ ok: true, model: req.params.model })),
+    };
+    const app = createApp({
+      browserPool: { browser: {}, currentAuthIndex: null },
+      requestHandlerOverride: requestHandler,
+      configOverride: { defaultModel: "gemini-config-default" },
+    });
+
+    const res = await request(app).post("/api/test/generate").send({
+      contents: [{ role: "user", parts: [{ text: "hello" }] }],
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, model: "gemini-test" });
+    expect(requestHandler.handleGeminiGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: { model: "gemini-test" },
+      }),
+      expect.any(Object)
+    );
+  });
+
   test("POST /api/debug/page returns disabled error when page debug is off", async () => {
     const app = createApp({
       browserPool: { browser: {}, currentAuthIndex: null },
