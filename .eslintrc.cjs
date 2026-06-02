@@ -9,7 +9,14 @@ module.exports = {
   },
   extends: ["eslint:recommended"],
   rules: {
-    "no-unused-vars": ["error", { ignoreRestSiblings: true }],
+    "no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "^(_|logger$|model$)",
+        varsIgnorePattern: "^(email|model|path|EmptyResponseError)$",
+        ignoreRestSiblings: true,
+      },
+    ],
   },
   overrides: [
     {
