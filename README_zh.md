@@ -234,6 +234,7 @@ GeminiPageController 操作 Gemini Web 页面
 - ✅ 请求重试与账号轮换
 - ✅ 错误映射（Gemini/OpenAI 格式）
 - ✅ Docker 部署支持
+- ✅ Web 管理面板（仪表盘、账号管理、在线测试、实时日志、配置/调试）
 - ✅ 完整单元测试（37 个测试用例）
 
 ### 未实现（后续版本）
@@ -245,7 +246,6 @@ GeminiPageController 操作 Gemini Web 页面
 - ❌ TTS 语音合成
 - ❌ Embeddings 向量接口
 - ❌ Token 计数
-- ❌ Web 管理界面
 - ❌ VNC 登录
 - ❌ HTTP auth 同步
 
