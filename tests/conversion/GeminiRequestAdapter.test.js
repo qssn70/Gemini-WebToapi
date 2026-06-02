@@ -67,4 +67,21 @@ describe("GeminiRequestAdapter", () => {
     const result = adaptGeminiRequest(body, "req-7", "gemini-3.1-pro-preview");
     expect(result.generationConfig.thinkingLevel).toBe("extended");
   });
+
+  test("defaults thinkingLevel to extended", () => {
+    const body = {
+      contents: [{ role: "user", parts: [{ text: "Test" }] }],
+    };
+    const result = adaptGeminiRequest(body, "req-default-thinking", "gemini-3.1-pro-preview");
+    expect(result.generationConfig.thinkingLevel).toBe("extended");
+  });
+
+  test("preserves explicit standard thinkingLevel", () => {
+    const body = {
+      contents: [{ role: "user", parts: [{ text: "Test" }] }],
+      generationConfig: { thinkingLevel: "standard" },
+    };
+    const result = adaptGeminiRequest(body, "req-standard-thinking", "gemini-3.1-pro-preview");
+    expect(result.generationConfig.thinkingLevel).toBe("standard");
+  });
 });

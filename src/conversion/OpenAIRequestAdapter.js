@@ -83,7 +83,7 @@ function extractContentText(content) {
  * Normalize Gemini Web thinking level names.
  */
 function normalizeThinkingLevel(value) {
-  if (value === undefined || value === null || value === "") return null;
+  if (value === undefined || value === null || value === "") return "extended";
   const normalized = String(value).trim().toLowerCase();
   if (["standard", "标准", "normal", "medium"].includes(normalized)) return "standard";
   if (["extended", "扩展", "advanced", "deep", "high"].includes(normalized)) return "extended";

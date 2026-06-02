@@ -158,6 +158,10 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
           <div class="label">已过期</div>
           <div class="value red" id="sExpired">-</div>
         </div>
+        <div class="stat">
+          <div class="label">运行时失败</div>
+          <div class="value red" id="sRuntimeFailed">-</div>
+        </div>
       </div>
     </div>
 
@@ -316,6 +320,7 @@ function renderDashboard(d) {
   document.getElementById('sRotation').textContent = d.accounts.rotation;
   document.getElementById('sTotal').textContent = d.accounts.total;
   document.getElementById('sExpired').textContent = d.accounts.expired;
+  document.getElementById('sRuntimeFailed').textContent = d.accounts.runtimeFailed || 0;
 }
 
 function renderAccounts(d) {
@@ -329,11 +334,15 @@ function renderAccounts(d) {
   noAcc.style.display = 'none';
   tbody.innerHTML = d.accounts.details.map(a => {
     let statusTag = '';
-    if (a.isExpired) statusTag = '<span class="tag red">已过期</span>';
+    if (a.runtimeFailed) {
+      const reason = a.runtimeFailureReason ? ' title="' + escapeHtml(a.runtimeFailureReason) + '"' : '';
+      statusTag = '<span class="tag red"' + reason + '>登录失败</span>';
+    } else if (a.isExpired) statusTag = '<span class="tag red">已过期</span>';
     else if (a.isDuplicate) statusTag = '<span class="tag orange">重复</span>';
-    else statusTag = '<span class="tag green">正常</span>';
+    else if (a.isHealthy) statusTag = '<span class="tag green">正常</span>';
+    else statusTag = '<span class="tag gray">不可用</span>';
 
-    const rotationTag = a.isRotation ? '<span class="tag green">是</span>' : '<span class="tag gray">否</span>';
+    const rotationTag = a.isRotation && !a.runtimeFailed ? '<span class="tag green">是</span>' : '<span class="tag gray">否</span>';
     const isCurrent = d.browser.currentAuthIndex === a.index;
     const name = a.name || '<span style="color:var(--text2)">-</span>';
 

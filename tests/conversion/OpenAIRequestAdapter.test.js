@@ -79,4 +79,23 @@ describe("OpenAIRequestAdapter", () => {
     const result = adaptOpenAIRequest(body, "req-7");
     expect(result.generationConfig.thinkingLevel).toBe("standard");
   });
+
+  test("defaults thinkingLevel to extended", () => {
+    const body = {
+      model: "gemini-3.1-pro-preview",
+      messages: [{ role: "user", content: "Test" }],
+    };
+    const result = adaptOpenAIRequest(body, "req-default-thinking");
+    expect(result.generationConfig.thinkingLevel).toBe("extended");
+  });
+
+  test("preserves explicit standard thinkingLevel", () => {
+    const body = {
+      model: "gemini-3.1-pro-preview",
+      messages: [{ role: "user", content: "Test" }],
+      thinking_level: "standard",
+    };
+    const result = adaptOpenAIRequest(body, "req-standard-thinking");
+    expect(result.generationConfig.thinkingLevel).toBe("standard");
+  });
 });

@@ -2,7 +2,12 @@
  * BrowserPool - manages browser lifecycle and account contexts.
  */
 
-const { chromium } = require("playwright");
+const {
+  buildContextOptions,
+  buildLaunchOptions,
+  createBrowserType,
+  formatAuthSummary,
+} = require("../browser/BrowserRuntime");
 const fs = require("fs");
 const path = require("path");
 const { NoAuthAvailableError } = require("../utils/Errors");
@@ -18,23 +23,19 @@ class BrowserPool {
     this.currentContext = null;
     this.currentPage = null;
     this.rotationPosition = 0;
+    this.runtimeFailures = new Map();
   }
 
   /**
    * Start the browser.
    */
   async start() {
-    this.logger.info("[BrowserPool] Starting browser...");
+    this.logger.info(`[BrowserPool] Starting ${this.config.browserEngine || "chromium"} browser...`);
 
-    const launchOptions = {
-      headless: this.config.browserHeadless,
-    };
+    const browserType = createBrowserType(this.config);
+    const launchOptions = buildLaunchOptions(this.config);
 
-    if (this.config.browserExecutablePath) {
-      launchOptions.executablePath = this.config.browserExecutablePath;
-    }
-
-    this.browser = await chromium.launch(launchOptions);
+    this.browser = await browserType.launch(launchOptions);
     this.logger.info("[BrowserPool] Browser started.");
   }
 
@@ -86,7 +87,7 @@ class BrowserPool {
    * @param {string} [reason] - Reason for rotation.
    */
   async rotate(reason) {
-    const indices = this.authSource.getRotationIndices();
+    const indices = this._getUsableRotationIndices();
     if (indices.length === 0) {
       throw new NoAuthAvailableError("No auth accounts available for rotation.");
     }
@@ -109,7 +110,7 @@ class BrowserPool {
    * @returns {Promise<{authIndex: number, context: import('playwright').BrowserContext, page: import('playwright').Page}>}
    */
   async switchToAccount(authIndex) {
-    const indices = this.authSource.getRotationIndices();
+    const indices = this._getUsableRotationIndices();
     const pos = indices.indexOf(authIndex);
     if (pos === -1) {
       throw new NoAuthAvailableError(
@@ -132,7 +133,26 @@ class BrowserPool {
    * @param {string} [reason]
    */
   async markCurrentAccountFailed(reason) {
-    this.logger.warn(`[BrowserPool] Account ${this.currentAuthIndex} failed: ${reason}`);
+    const failedAuthIndex = this.currentAuthIndex;
+    this.logger.warn(`[BrowserPool] Account ${failedAuthIndex} failed: ${reason}`);
+
+    if (failedAuthIndex !== null) {
+      this.runtimeFailures.set(failedAuthIndex, {
+        reason: reason || "unknown",
+        failedAt: new Date().toISOString(),
+      });
+
+      const storageState = this.authSource.getAuth(failedAuthIndex);
+      if (storageState) {
+        this.logger.warn(`[BrowserPool] Failed auth storageState summary: ${formatAuthSummary(failedAuthIndex, storageState)}`);
+      }
+
+      if (this._getUsableRotationIndices().length === 0) {
+        await this._closeCurrentSession();
+        throw new NoAuthAvailableError("No auth accounts available for rotation.");
+      }
+    }
+
     return await this.rotate(reason);
   }
 
@@ -142,13 +162,32 @@ class BrowserPool {
   refreshAuthSources() {
     this.authSource.reload();
     this.rotationPosition = 0;
+    this.runtimeFailures.clear();
+  }
+
+  /**
+   * Get auth indices that failed at runtime in this process.
+   */
+  getRuntimeFailedAuthIndices() {
+    return [...this.runtimeFailures.keys()].sort((a, b) => a - b);
+  }
+
+  /**
+   * Get runtime status for an auth index.
+   */
+  getAccountRuntimeStatus(authIndex) {
+    const failure = this.runtimeFailures.get(authIndex);
+    if (!failure) {
+      return { failed: false, reason: null, failedAt: null };
+    }
+    return { failed: true, reason: failure.reason, failedAt: failure.failedAt };
   }
 
   /**
    * Create a new session using the current rotation position.
    */
   async _createSession() {
-    const indices = this.authSource.getRotationIndices();
+    const indices = this._getUsableRotationIndices();
     if (indices.length === 0) {
       throw new NoAuthAvailableError("No usable authenticated Gemini Web account is available.");
     }
@@ -168,7 +207,13 @@ class BrowserPool {
     this.logger.info(`[BrowserPool] Creating context for auth index ${authIndex}...`);
     this.logger.debug(`[BrowserPool] Auth storageState summary: ${formatAuthSummary(authIndex, storageState)}`);
 
-    const context = await this.browser.newContext({ storageState });
+    const contextOptions = buildContextOptions(this.config, storageState);
+    const context = await this.browser.newContext(contextOptions);
+
+    if (this.config.browserInitScript) {
+      await context.addInitScript(this.config.browserInitScript);
+    }
+
     const page = await context.newPage();
 
     this.currentAuthIndex = authIndex;
@@ -178,6 +223,15 @@ class BrowserPool {
     this.logger.info(`[BrowserPool] Session created for auth index ${authIndex}.`);
 
     return { authIndex, context, page };
+  }
+
+  /**
+   * Get rotation indices excluding auth files that already failed at runtime.
+   */
+  _getUsableRotationIndices() {
+    return this.authSource
+      .getRotationIndices()
+      .filter((index) => !this.runtimeFailures.has(index));
   }
 
   /**
@@ -221,43 +275,6 @@ class BrowserPool {
       this.logger.warn(`[BrowserPool] Failed to write back auth file: ${err.message}`);
     }
   }
-}
-
-function formatAuthSummary(authIndex, storageState) {
-  const cookies = Array.isArray(storageState.cookies) ? storageState.cookies : [];
-  const origins = Array.isArray(storageState.origins) ? storageState.origins : [];
-  const googleCookies = cookies.filter((cookie) => String(cookie.domain || "").includes("google"));
-  const cookieDomains = [...new Set(cookies.map((cookie) => cookie.domain).filter(Boolean))].sort();
-  const originList = [...new Set(origins.map((origin) => origin.origin).filter(Boolean))].sort();
-  const importantNames = [
-    "SID",
-    "HSID",
-    "SSID",
-    "APISID",
-    "SAPISID",
-    "__Secure-1PSID",
-    "__Secure-3PSID",
-    "__Secure-1PSIDTS",
-    "__Secure-3PSIDTS",
-    "__Secure-1PSIDCC",
-    "__Secure-3PSIDCC",
-    "OSID",
-    "__Secure-OSID",
-    "COMPASS",
-  ];
-  const presentImportantCookies = importantNames.filter((name) => cookies.some((cookie) => cookie.name === name));
-
-  return [
-    `authIndex=${authIndex}`,
-    `accountName=${storageState.accountName || ""}`,
-    `expired=${storageState.expired === true}`,
-    `cookieCount=${cookies.length}`,
-    `googleCookieCount=${googleCookies.length}`,
-    `cookieDomains=${cookieDomains.join(",")}`,
-    `importantCookies=${presentImportantCookies.join(",")}`,
-    `originCount=${origins.length}`,
-    `origins=${originList.join(",")}`,
-  ].join(" ");
 }
 
 module.exports = BrowserPool;

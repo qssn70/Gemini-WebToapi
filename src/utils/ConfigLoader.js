@@ -20,8 +20,15 @@ const DEFAULTS = {
   aistudioAuthExportToken: "",
 
   geminiWebUrl: "https://gemini.google.com/app",
+  browserEngine: "chromium",
   browserHeadless: true,
   browserExecutablePath: "",
+  browserUserAgent: "",
+  browserViewport: null,
+  browserProxy: "",
+  browserInitScript: "",
+  authStateWaitMs: 10000,
+  authStatePollMs: 500,
   maxContexts: 1,
   tempConversationMode: true,
 
@@ -56,8 +63,15 @@ function loadConfig() {
 
   // Browser
   config.geminiWebUrl = envStr("GEMINI_WEB_URL", DEFAULTS.geminiWebUrl);
+  config.browserEngine = envStr("BROWSER_ENGINE", DEFAULTS.browserEngine).toLowerCase();
   config.browserHeadless = envBool("BROWSER_HEADLESS", DEFAULTS.browserHeadless);
   config.browserExecutablePath = envStr("BROWSER_EXECUTABLE_PATH", DEFAULTS.browserExecutablePath);
+  config.browserUserAgent = envStr("BROWSER_USER_AGENT", DEFAULTS.browserUserAgent);
+  config.browserViewport = envStr("BROWSER_VIEWPORT", DEFAULTS.browserViewport);
+  config.browserProxy = envStr("BROWSER_PROXY", DEFAULTS.browserProxy);
+  config.browserInitScript = envStr("BROWSER_INIT_SCRIPT", DEFAULTS.browserInitScript);
+  config.authStateWaitMs = envInt("AUTH_STATE_WAIT_MS", DEFAULTS.authStateWaitMs, 1000);
+  config.authStatePollMs = envInt("AUTH_STATE_POLL_MS", DEFAULTS.authStatePollMs, 50);
   config.maxContexts = envInt("MAX_CONTEXTS", DEFAULTS.maxContexts, 1);
   config.tempConversationMode = envBool("TEMP_CONVERSATION_MODE", DEFAULTS.tempConversationMode);
 
@@ -78,6 +92,12 @@ function loadConfig() {
   if (config.authMode !== "file") {
     throw new Error(
       `Invalid AUTH_MODE "${config.authMode}". Only "file" is supported in MVP.`
+    );
+  }
+
+  if (!["chromium", "firefox"].includes(config.browserEngine)) {
+    throw new Error(
+      `Invalid BROWSER_ENGINE "${config.browserEngine}". Use "chromium" or "firefox".`
     );
   }
 

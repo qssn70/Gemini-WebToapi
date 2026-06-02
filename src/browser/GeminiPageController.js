@@ -155,7 +155,10 @@ class GeminiPageController {
     const fallbackLabel = thinkingLevel === "extended" ? "Extended" : "Standard";
 
     try {
-      const menuButton = await this._findElement(page, selectors.thinkingMenuButton, 3000);
+      let menuButton = await this._findElement(page, selectors.thinkingMenuButton, 3000);
+      if (!menuButton) {
+        menuButton = await this._findElement(page, selectors.modelMenuButton, 3000);
+      }
       if (!menuButton) {
         this.logger.warn(`[PageController] Thinking menu not found; continuing with current thinking level, requested=${thinkingLevel}, requestId=${requestId}`);
         return;
@@ -209,8 +212,11 @@ class GeminiPageController {
     const startTime = Date.now();
     let lastState = "unknown";
 
+    let lastDiagnostics = null;
+
     while (Date.now() - startTime < maxWaitMs) {
       const diagnostics = await this._diagnosePageState(page);
+      lastDiagnostics = diagnostics;
       lastState = diagnostics.state;
       this.logger.debug(`[PageController] Auth state check: ${formatPageDiagnostics(diagnostics)}`);
       if (lastState === "ready") {
@@ -223,9 +229,15 @@ class GeminiPageController {
     }
 
     if (lastState === "login_required") {
+      if (lastDiagnostics) {
+        this.logger.warn(`[PageController] Auth state failure: ${formatPageDiagnostics(lastDiagnostics)}`);
+      }
       throw new AuthRequiredError("Gemini page requires login.");
     }
     if (lastState === "quota_exceeded") {
+      if (lastDiagnostics) {
+        this.logger.warn(`[PageController] Auth state failure: ${formatPageDiagnostics(lastDiagnostics)}`);
+      }
       throw new QuotaExceededError("Gemini page shows quota exceeded.");
     }
   }

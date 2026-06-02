@@ -144,8 +144,15 @@ curl -X POST \
 | `AUTH_DIR` | /app/configs/auth | auth 文件目录 |
 | `ENABLE_AUTH_UPDATE` | false | 是否允许写回 auth 文件 |
 | `GEMINI_WEB_URL` | https://gemini.google.com/app | Gemini Web 地址 |
+| `BROWSER_ENGINE` | chromium | 浏览器运行时引擎（`chromium` 或 `firefox`） |
 | `BROWSER_HEADLESS` | true | 是否无头模式运行浏览器 |
 | `BROWSER_EXECUTABLE_PATH` | （空） | 自定义浏览器路径 |
+| `BROWSER_USER_AGENT` | （空） | 可选浏览器 User-Agent 覆盖 |
+| `BROWSER_VIEWPORT` | （空） | 可选视口尺寸，例如 `1920x1080` |
+| `BROWSER_PROXY` | （空） | 可选 Playwright 代理服务器 |
+| `BROWSER_INIT_SCRIPT` | （空） | 可选页面脚本前置注入脚本 |
+| `AUTH_STATE_WAIT_MS` | 10000 | auth 调试读取页面状态前的等待时间 |
+| `AUTH_STATE_POLL_MS` | 500 | auth 状态检查轮询间隔 |
 | `MAX_CONTEXTS` | 1 | 最大浏览器上下文数 |
 | `MAX_RETRIES` | 2 | 最大重试次数 |
 | `RETRY_DELAY_MS` | 1500 | 重试间隔（毫秒） |
@@ -250,6 +257,24 @@ Gemini Web 的 DOM 选择器是最容易变化的部分。如需调试：
 2. 所有页面操作集中在 `src/browser/GeminiPageController.js`
 3. 使用 `BROWSER_HEADLESS=false` 启动可以看到浏览器界面
 4. 使用 `LOG_LEVEL=debug` 查看详细日志
+
+## 调试 auth 登录
+
+可以使用本地 Playwright auth 调试器验证某个 auth 文件能否在当前浏览器运行时下打开 Gemini Web：
+
+```bash
+AUTH_DIR=./configs/auth LOG_LEVEL=debug npm run debug:auth -- --auth-index 0
+```
+
+复用 AIStudioToAPI/Camoufox 生成的 auth 文件时，可尝试这些对齐配置：
+
+```bash
+BROWSER_ENGINE=firefox
+BROWSER_EXECUTABLE_PATH=/path/to/camoufox
+BROWSER_VIEWPORT=1920x1080
+```
+
+调试器会输出安全的 auth 摘要和页面诊断，不会输出 cookie 值。
 
 ## 许可证
 

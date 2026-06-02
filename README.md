@@ -100,7 +100,15 @@ See `.env.example` for all available environment variables.
 | `PORT` | 7870 | Server port |
 | `API_KEYS` | 123456 | Comma-separated API keys |
 | `AUTH_DIR` | /app/configs/auth | Path to auth files |
+| `BROWSER_ENGINE` | chromium | Browser runtime engine (`chromium` or `firefox`) |
 | `BROWSER_HEADLESS` | true | Run browser in headless mode |
+| `BROWSER_EXECUTABLE_PATH` | (empty) | Custom browser executable path |
+| `BROWSER_USER_AGENT` | (empty) | Optional browser user agent override |
+| `BROWSER_VIEWPORT` | (empty) | Optional viewport override, for example `1920x1080` |
+| `BROWSER_PROXY` | (empty) | Optional Playwright proxy server |
+| `BROWSER_INIT_SCRIPT` | (empty) | Optional init script evaluated before page scripts |
+| `AUTH_STATE_WAIT_MS` | 10000 | Wait time before reading auth debug page state |
+| `AUTH_STATE_POLL_MS` | 500 | Poll interval for auth state checks |
 | `MAX_RETRIES` | 2 | Maximum retry attempts |
 | `REQUEST_TIMEOUT_MS` | 120000 | Request timeout in ms |
 | `DEFAULT_MODEL` | gemini-3.1-flash-lite | Default model when a request does not specify one |
@@ -146,6 +154,24 @@ Route -> Adapter -> RequestHandler -> BrowserPool -> GeminiPageController
 - **RequestHandler**: Request orchestration, retries, error mapping
 - **BrowserPool**: Browser and context management
 - **GeminiPageController**: Gemini Web page interactions and selectors
+
+## Debugging auth login
+
+Use the local Playwright auth debugger to verify whether an auth file can open Gemini Web with the configured browser runtime:
+
+```bash
+AUTH_DIR=./configs/auth LOG_LEVEL=debug npm run debug:auth -- --auth-index 0
+```
+
+Useful parity settings when reusing AIStudioToAPI/Camoufox auth files:
+
+```bash
+BROWSER_ENGINE=firefox
+BROWSER_EXECUTABLE_PATH=/path/to/camoufox
+BROWSER_VIEWPORT=1920x1080
+```
+
+The debugger prints a safe auth summary and page diagnostics. It never prints cookie values.
 
 ## License
 

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node main.js",
     "dev": "nodemon main.js",
-    "test": "jest --runInBand",
+    "debug:auth": "node scripts/debugAuth.js",
+    "test": "jest --runInBand --testPathIgnorePatterns=.claude",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

@@ -36,6 +36,9 @@ module.exports = {
     "button[aria-label*='停止']",
   ],
   modelMenuButton: [
+    "[data-test-id='bard-mode-menu-button']",
+    "button[aria-label*='模式选择器']",
+    "button[aria-label*='mode selector']",
     "button[aria-label*='model']",
     "button[aria-label*='Model']",
     "button[aria-label*='模型']",

@@ -71,4 +71,52 @@ describe("GeminiPageController", () => {
     expect(logOutput).toContain("loginSelector=text=Sign in");
     expect(logOutput).toContain("inputSelector=div[contenteditable='true']");
   });
+
+  test("warns with page diagnostics when auth state stays logged out", async () => {
+    const page = createPage({ states: ["login_required"] });
+    const logger = createLogger();
+    const controller = new GeminiPageController({
+      logger,
+      config: {
+        geminiWebUrl: "https://gemini.google.com/app",
+        tempConversationMode: true,
+        pageNavigationDelayMs: 0,
+        authStateWaitMs: 20,
+        authStatePollMs: 10,
+      },
+    });
+
+    await expect(controller.ensureReady(page)).rejects.toThrow("Gemini page requires login.");
+
+    const warnOutput = logger.warn.mock.calls.map((call) => call.join(" ")).join("\n");
+    expect(warnOutput).toContain("[PageController] Auth state failure");
+    expect(warnOutput).toContain("state=login_required");
+    expect(warnOutput).toContain("url=https://gemini.google.com/app");
+    expect(warnOutput).toContain("title=Gemini");
+    expect(warnOutput).toContain("loginSelector=text=Sign in");
+  });
+
+  test("selects thinking level through model menu fallback", async () => {
+    const logger = createLogger();
+    const controller = new GeminiPageController({ logger, config: {} });
+    const thinkingMenu = { click: jest.fn(async () => {}) };
+    const option = { click: jest.fn(async () => {}) };
+    const page = {
+      getByText: jest.fn(() => ({
+        or: jest.fn(() => ({ first: jest.fn(() => option) })),
+      })),
+    };
+
+    jest.spyOn(controller, "_findElement")
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(thinkingMenu);
+
+    await controller._selectThinkingLevel(page, "extended", "req-thinking");
+
+    expect(controller._findElement).toHaveBeenCalledTimes(2);
+    expect(thinkingMenu.click).toHaveBeenCalledTimes(1);
+    expect(page.getByText).toHaveBeenCalledWith("扩展", { exact: false });
+    expect(option.click).toHaveBeenCalledWith({ timeout: 5000 });
+    expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining("Selected thinking level extended"));
+  });
 });

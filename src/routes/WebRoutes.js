@@ -28,14 +28,28 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
     const expiredIndices = authSource.expiredIndices || [];
     const duplicateIndices = authSource.duplicateIndices || [];
 
+    const runtimeFailedIndices = typeof browserPool.getRuntimeFailedAuthIndices === "function"
+      ? browserPool.getRuntimeFailedAuthIndices()
+      : [];
+
     const accountDetails = availableIndices.map((index) => {
       const auth = authSource.getAuth(index);
+      const runtimeStatus = typeof browserPool.getAccountRuntimeStatus === "function"
+        ? browserPool.getAccountRuntimeStatus(index)
+        : { failed: false, reason: null, failedAt: null };
+      const isExpired = expiredIndices.includes(index);
+      const isDuplicate = duplicateIndices.includes(index);
+      const isRotation = rotationIndices.includes(index);
       return {
         index,
         name: (auth && auth.accountName) || null,
-        isDuplicate: duplicateIndices.includes(index),
-        isExpired: expiredIndices.includes(index),
-        isRotation: rotationIndices.includes(index),
+        isDuplicate,
+        isExpired,
+        isRotation,
+        runtimeFailed: runtimeStatus.failed,
+        runtimeFailureReason: runtimeStatus.reason,
+        runtimeFailedAt: runtimeStatus.failedAt,
+        isHealthy: isRotation && !isExpired && !isDuplicate && !runtimeStatus.failed,
         canonicalIndex: authSource.getCanonicalIndex(index) ?? null,
       };
     });
@@ -52,6 +66,7 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
         rotation: rotationIndices.length,
         expired: expiredIndices.length,
         duplicate: duplicateIndices.length,
+        runtimeFailed: runtimeFailedIndices.length,
         details: accountDetails,
       },
       config: {
@@ -107,7 +122,11 @@ function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistr
 
   // Reload auth files
   router.post("/api/auth/reload", (req, res) => {
-    authSource.reload();
+    if (typeof browserPool.refreshAuthSources === "function") {
+      browserPool.refreshAuthSources();
+    } else {
+      authSource.reload();
+    }
     logger.info("[WebUI] Auth files reloaded via Web UI.");
     res.json({
       ok: true,
