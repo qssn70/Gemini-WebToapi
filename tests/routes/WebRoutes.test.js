@@ -112,4 +112,50 @@ describe("WebRoutes", () => {
     expect(browserPool.refreshAuthSources).toHaveBeenCalledTimes(1);
     expect(authSource.reload).not.toHaveBeenCalled();
   });
+
+  test("GET /ui serves the Web UI HTML", async () => {
+    const app = createApp({
+      browserPool: {
+        browser: {},
+        currentAuthIndex: null,
+      },
+    });
+
+    const res = await request(app).get("/ui");
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain("Gemini-web2api 管理面板");
+    expect(res.text).toContain('href="/ui/styles.css"');
+    expect(res.text).toContain('src="/ui/app.js"');
+  });
+
+  test("GET /ui/styles.css serves stylesheet", async () => {
+    const app = createApp({
+      browserPool: {
+        browser: {},
+        currentAuthIndex: null,
+      },
+    });
+
+    const res = await request(app).get("/ui/styles.css");
+
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toContain("text/css");
+    expect(res.text).toContain(":root");
+  });
+
+  test("GET /ui/app.js serves client script", async () => {
+    const app = createApp({
+      browserPool: {
+        browser: {},
+        currentAuthIndex: null,
+      },
+    });
+
+    const res = await request(app).get("/ui/app.js");
+
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toContain("javascript");
+    expect(res.text).toContain("function apiRequest");
+  });
 });

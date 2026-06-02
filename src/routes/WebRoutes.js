@@ -7,18 +7,33 @@ const path = require("path");
 const fs = require("fs");
 
 const DEBUG_DIR = path.join(process.cwd(), "debug");
+const UI_DIR = path.join(__dirname, "../../ui");
+
+function sendUiFile(res, fileName, contentType) {
+  const filePath = path.join(UI_DIR, fileName);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send("Web UI asset not found.");
+  }
+  if (contentType) {
+    res.type(contentType);
+  }
+  return res.sendFile(filePath);
+}
 
 function createWebRoutes({ authSource, browserPool, requestHandler, modelRegistry, config, logger }) {
   const router = express.Router();
 
   // Serve the Web UI
   router.get("/ui", (req, res) => {
-    const htmlPath = path.join(__dirname, "../../ui/index.html");
-    if (fs.existsSync(htmlPath)) {
-      res.sendFile(htmlPath);
-    } else {
-      res.status(404).send("Web UI not found.");
-    }
+    return sendUiFile(res, "index.html", "html");
+  });
+
+  router.get("/ui/styles.css", (req, res) => {
+    return sendUiFile(res, "styles.css", "css");
+  });
+
+  router.get("/ui/app.js", (req, res) => {
+    return sendUiFile(res, "app.js", "js");
   });
 
   // System status API
