@@ -112,30 +112,43 @@ describe("GeminiPageController", () => {
     expect(warnOutput).toContain("loginSelector=text=Sign in");
   });
 
-  test("selects thinking level through model menu fallback", async () => {
+  test("tries localized thinking level labels before warning", async () => {
     const logger = createLogger();
     const controller = new GeminiPageController({ logger, config: {} });
     const thinkingMenu = { click: jest.fn(async () => {}) };
-    const option = { click: jest.fn(async () => {}) };
+    const timeoutError = new Error("option timeout");
+    const optionClicks = [
+      jest.fn(async () => {
+        throw timeoutError;
+      }),
+      jest.fn(async () => {}),
+    ];
     const page = {
-      getByText: jest.fn(() => ({
-        or: jest.fn(() => ({ first: jest.fn(() => option) })),
-      })),
+      getByText: jest
+        .fn()
+        .mockReturnValueOnce({
+          first: jest.fn(() => ({ click: optionClicks[0] })),
+        })
+        .mockReturnValueOnce({
+          first: jest.fn(() => ({ click: optionClicks[1] })),
+        }),
     };
 
-    jest
-      .spyOn(controller, "_findElement")
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(thinkingMenu);
+    jest.spyOn(controller, "_findElement").mockResolvedValueOnce(thinkingMenu);
 
     await controller._selectThinkingLevel(page, "extended", "req-thinking");
 
-    expect(controller._findElement).toHaveBeenCalledTimes(2);
-    expect(thinkingMenu.click).toHaveBeenCalledTimes(1);
-    expect(page.getByText).toHaveBeenCalledWith("扩展", { exact: false });
-    expect(option.click).toHaveBeenCalledWith({ timeout: 5000 });
+    expect(page.getByText).toHaveBeenNthCalledWith(1, "Extended", {
+      exact: false,
+    });
+    expect(page.getByText).toHaveBeenNthCalledWith(2, "扩展", {
+      exact: false,
+    });
+    expect(optionClicks[0]).toHaveBeenCalledWith({ timeout: 1400 });
+    expect(optionClicks[1]).toHaveBeenCalledWith({ timeout: 1400 });
+    expect(logger.warn).not.toHaveBeenCalled();
     expect(logger.debug).toHaveBeenCalledWith(
-      expect.stringContaining("Selected thinking level extended"),
+      expect.stringContaining("Selected thinking level extended (扩展)"),
     );
   });
 });

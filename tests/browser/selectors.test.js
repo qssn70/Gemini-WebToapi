@@ -10,4 +10,16 @@ describe("Gemini Web selectors", () => {
       ]),
     );
   });
+
+  test("thinking menu selectors include visible level labels", () => {
+    expect(selectors.thinkingMenuButton).toEqual(
+      expect.arrayContaining([
+        "button[aria-label*='thinking']",
+        "button:has-text('Standard')",
+        "button:has-text('Extended')",
+        "button:has-text('标准')",
+        "button:has-text('扩展')",
+      ]),
+    );
+  });
 });

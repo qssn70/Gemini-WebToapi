@@ -41,5 +41,10 @@ module.exports = {
     "button[aria-label*='thinking']",
     "button[aria-label*='Thinking']",
     "button[aria-label*='思考']",
+    "button:has-text('Standard')",
+    "button:has-text('Extended')",
+    "button:has-text('标准')",
+    "button:has-text('扩展')",
+    "button:has-text('思考')",
   ],
 };

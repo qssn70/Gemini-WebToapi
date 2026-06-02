@@ -180,9 +180,7 @@ class GeminiPageController {
   async _selectThinkingLevel(page, thinkingLevel, requestId) {
     if (!thinkingLevel) return;
 
-    const label = thinkingLevel === "extended" ? "扩展" : "标准";
-    const fallbackLabel =
-      thinkingLevel === "extended" ? "Extended" : "Standard";
+    const labels = getThinkingLevelLabels(thinkingLevel);
 
     try {
       let menuButton = await this._findElement(
@@ -207,21 +205,43 @@ class GeminiPageController {
       await menuButton.click();
       await sleep(300);
 
-      const option = page
-        .getByText(label, { exact: false })
-        .or(page.getByText(fallbackLabel, { exact: false }))
-        .first();
-      await option.click({ timeout: 5000 });
+      const selectedLabel = await this._clickFirstTextOption(
+        page,
+        labels,
+        7000,
+      );
       await sleep(500);
 
       this.logger.debug(
-        `[PageController] Selected thinking level ${thinkingLevel}, requestId=${requestId}`,
+        `[PageController] Selected thinking level ${thinkingLevel} (${selectedLabel}), requestId=${requestId}`,
       );
     } catch (err) {
       this.logger.warn(
         `[PageController] Failed to select thinking level ${thinkingLevel}: ${err.message}, requestId=${requestId}`,
       );
     }
+  }
+
+  /**
+   * Click the first visible text option from a list of localized labels.
+   */
+  async _clickFirstTextOption(page, labels, timeout) {
+    const timeoutPerLabel = Math.max(1000, Math.floor(timeout / labels.length));
+    let lastError = null;
+
+    for (const label of labels) {
+      try {
+        const option = page.getByText(label, { exact: false }).first();
+        await option.click({ timeout: timeoutPerLabel });
+        return label;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    throw (
+      lastError || new GeminiPageTimeoutError("Could not find text option.")
+    );
   }
 
   /**
@@ -450,6 +470,14 @@ class GeminiPageController {
     }
     return null;
   }
+}
+
+function getThinkingLevelLabels(thinkingLevel) {
+  if (thinkingLevel === "extended") {
+    return ["Extended", "扩展", "Deep Think", "深度思考", "高级"];
+  }
+
+  return ["Standard", "标准", "Basic", "基础"];
 }
 
 function formatPageDiagnostics(diagnostics) {
